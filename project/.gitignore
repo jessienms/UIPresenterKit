@@ -1,0 +1,40 @@
+# Unity 자동 생성 폴더 (재생성 가능, 커밋 불필요)
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+ProfilerCaptures/
+MemoryCaptures/
+ExportedObj/
+.consulo/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+
+# Unity3D 생성 메타 파일 (Assets 외부)
+/[Aa]ssets/AssetStoreTools*
+
+# IDE 설정
+.idea/
+.vs/
+*.userprefs
+
+# 크래시 리포트
+sysinfo.txt
+crashlytics-build.properties
+
+# Addressables (빌드 결과물)
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/**/[Aa]ddressables/
+[Aa]ssets/[Ss]tream[Ii]ng[Aa]ssets/aa/

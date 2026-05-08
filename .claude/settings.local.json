@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Work\\\\project_uilib\" -Recurse -Force)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(ConvertTo-Json)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Work\\\\project_uilib\\\\doc\" -Recurse | Select-Object FullName, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"DIR\"}else{\"FILE\"}}} | Sort-Object FullName | Format-Table -AutoSize)",
+      "PowerShell(Set-Content *)",
+      "PowerShell(New-Item *)",
+      "Bash(gh auth *)",
+      "PowerShell(gh auth *)"
+    ]
+  }
+}
