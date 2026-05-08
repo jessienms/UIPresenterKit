@@ -9,7 +9,18 @@
       "PowerShell(Set-Content *)",
       "PowerShell(New-Item *)",
       "Bash(gh auth *)",
-      "PowerShell(gh auth *)"
+      "PowerShell(gh auth *)",
+      "PowerShell(cd C:\\\\Work\\\\project_uilib && git status --short | ForEach-Object { \\($_ -split '/',2\\)[0] + '/' + \\($_ -split '/',2\\)[1].Split\\('/'\\)[0] } | Sort-Object -Unique)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" auth status 2>&1)",
+      "PowerShell($env:Path -split ';' | Where-Object { $_ -ne '' } | ForEach-Object { $_ })",
+      "Bash(Get-ChildItem -Path \"C:\\\\Work\\\\project_uilib\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20 FullName)",
+      "Read(//mnt/c/Work/**)",
+      "Bash(rtk git *)",
+      "Bash(grep -E \"^\\(Subject|BehaviorSubject|Disposable|CompositeDisposable\\)$|R3\\\\.Disposable\")",
+      "Bash(/c/Windows/System32/find.exe /I \"BehaviorSubject\" \"C:\\\\\\\\Work\\\\\\\\project_uilib\\\\\\\\project\\\\\\\\Assets\\\\\\\\Packages\\\\\\\\R3.1.3.0\\\\\\\\lib\\\\\\\\netstandard2.1\\\\\\\\R3.xml\")"
     ]
   }
 }
