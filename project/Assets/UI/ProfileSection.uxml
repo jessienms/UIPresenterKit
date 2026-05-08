@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="profile" class="profile">
+        <ui:VisualElement class="profile-info">
+            <ui:Label name="username-label" text="" class="username-label"/>
+            <ui:Label name="level-label" text="" class="level-label"/>
+        </ui:VisualElement>
+        <ui:Button name="next-profile-btn" text="다음" class="profile-next-btn"/>
+    </ui:VisualElement>
+</ui:UXML>
