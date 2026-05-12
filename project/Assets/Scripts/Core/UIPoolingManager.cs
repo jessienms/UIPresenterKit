@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UILib
 {
@@ -29,6 +30,16 @@ namespace UILib
         internal async UniTask<GameObject> Spawn(string _key)
         {
             var prefab = await assetLoader.LoadAsync(_key);
+            if (prefab == null)
+            {
+                throw new InvalidOperationException($"[UILib] '{_key}' 로드 결과가 null입니다. Window prefab GameObject 를 반환해야 합니다.");
+            }
+
+            if (!prefab.TryGetComponent<UIDocument>(out _))
+            {
+                throw new InvalidOperationException($"[UILib] '{_key}' prefab root 에 UIDocument 가 없습니다. Window prefab 의 루트 GameObject 에 UIDocument 를 추가하세요.");
+            }
+
             var go = UnityEngine.Object.Instantiate(prefab, poolRoot);
             go.SetActive(false);
             return go;
@@ -64,8 +75,8 @@ namespace UILib
                 while (stack.TryPop(out var pair))
                 {
                     pair.Presenter.Dispose();
-                    if (pair.GameObject != null)
-                        UnityEngine.Object.Destroy(pair.GameObject);
+                    if (pair.Document != null)
+                        UnityEngine.Object.Destroy(pair.Document.gameObject);
                 }
             }
             pool.Clear();

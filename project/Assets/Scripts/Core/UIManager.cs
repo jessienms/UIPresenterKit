@@ -10,10 +10,10 @@ using VContainer;
 namespace UILib
 {
     /// <summary>
-    /// scope 당 singleton. Factory + 1차 캐시 + Handle 발급 역할.
-    /// Show&lt;T&gt;()            : 동적 prefab spawn + 1차/2차 캐시. Handle 반환.
-    /// Show&lt;T&gt;(UIDocument)  : 씬 정적 UIDocument 바인딩. 캐싱 없음. Handle 반환.
-    /// Hide(handle)          : 1차 캐시로 회수 (동적) 또는 즉시 Dispose (정적).
+    /// scope 당 singleton. Factory + 1차 캐시 + Presenter 반환 역할.
+    /// Show&lt;T&gt;()            : 동적 prefab spawn + 1차/2차 캐시. Presenter 반환.
+    /// Show&lt;T&gt;(UIDocument)  : 씬 정적 UIDocument 바인딩. 캐싱 없음. Presenter 반환.
+    /// Hide(presenter)       : 1차 캐시로 회수 (동적) 또는 즉시 Dispose (정적).
     /// Preload&lt;T&gt;()         : 활성화 없이 1차 캐시만 채운다.
     /// Dispose 시 1차 캐시 전체를 OnDetached 후 UIPoolingManager 로 이관한다.
     ///
@@ -26,25 +26,12 @@ namespace UILib
         private readonly UIPoolingManager poolingManager;
 
         private readonly Dictionary<string, Stack<WindowInstance>> cache = new();
-        private readonly Dictionary<IWindowHandle, WindowSession> activeWindows = new();
+        private readonly Dictionary<IWindowPresenter, WindowInstance> activeWindows = new();
+        private readonly Dictionary<IWindowPresenter, IDisposable> closeSubscriptions = new();
 
         private int nextOrder;
 
         private static readonly Dictionary<Type, string> typeToKey = new();
-
-        private readonly struct WindowSession
-        {
-            public readonly WindowInstance Instance;
-            public readonly IDisposable CloseSubscription;
-            public readonly Action InvalidateHandle;
-
-            public WindowSession(WindowInstance _instance, IDisposable _closeSubscription, Action _invalidateHandle)
-            {
-                Instance = _instance;
-                CloseSubscription = _closeSubscription;
-                InvalidateHandle = _invalidateHandle;
-            }
-        }
 
         public UIManager(IObjectResolver _resolver, UIPoolingManager _poolingManager)
         {
@@ -53,36 +40,35 @@ namespace UILib
         }
 
         /// <summary>동적 Show: prefab 을 1차/2차 캐시 또는 신규 spawn 으로 확보해 활성화한다.</summary>
-        public async UniTask<WindowHandle<T>> Show<T>()
+        public async UniTask<T> Show<T>()
             where T : class, IWindowPresenter, new()
         {
             var key = GetKey(typeof(T));
             var windowInstance = await AcquireOrCreate<T>(key);
-            var doc = windowInstance.GameObject.GetComponent<UIDocument>();
+            var doc = windowInstance.Document;
 
             if (!windowInstance.IsViewReady)
             {
                 // 최초 활성화: UIDocument.OnEnable 이 UXML 을 클론하므로 SetActive 가 필요.
-                windowInstance.GameObject.SetActive(true);
+                doc.gameObject.SetActive(true);
                 windowInstance.Presenter.OnViewReady(doc);
                 windowInstance.IsViewReady = true;
             }
-            else
-            {
-                // 재사용: 트리는 유효하므로 display 만 복원.
-                doc.rootVisualElement.style.display = DisplayStyle.Flex;
-            }
+            
+            // 재사용: 트리는 유효하므로 display 만 복원.
+            doc.SetActiveAsDisplay(true);
 
             doc.sortingOrder = ++nextOrder;
             windowInstance.Presenter.Show();
 
-            var handle = new WindowHandle<T>((T)windowInstance.Presenter);
+            var presenter = (T)windowInstance.Presenter;
             var closeSubscription = windowInstance.Presenter.CloseRequested
                 .Take(1)
-                .Subscribe(_ => Hide(handle));
-            activeWindows[handle] = new WindowSession(windowInstance, closeSubscription, handle.Invalidate);
+                .Subscribe(_ => Hide(windowInstance.Presenter));
+            activeWindows[windowInstance.Presenter] = windowInstance;
+            closeSubscriptions[windowInstance.Presenter] = closeSubscription;
 
-            return handle;
+            return presenter;
         }
 
         /// <summary>
@@ -90,62 +76,69 @@ namespace UILib
         /// 캐싱/풀링 없음. Hide 시 Presenter 를 즉시 OnDetached + Dispose.
         /// [Window] attribute 불필요. sortingOrder 는 씬 설정 그대로 유지.
         /// </summary>
-        public WindowHandle<T> Show<T>(UIDocument _sceneDoc)
+        public T Show<T>(UIDocument _sceneDoc)
             where T : class, IWindowPresenter, new()
         {
+            if (_sceneDoc == null)
+            {
+                throw new ArgumentNullException(nameof(_sceneDoc));
+            }
+
             var presenter = new T();
             resolver.Inject(presenter);
-            var windowInstance = new WindowInstance(null, _sceneDoc.gameObject, presenter, false);
+            var windowInstance = new WindowInstance(null, _sceneDoc, presenter, false);
 
             // GO 가 최초 비활성 상태일 수 있으므로 SetActive(true) 는 항상 호출.
             // 이미 활성이면 no-op. display:none 상태라면 Flex 로 복원.
             _sceneDoc.gameObject.SetActive(true);
-            _sceneDoc.SetActiveAsDisplay(true);
             presenter.OnViewReady(_sceneDoc);
+            
+            _sceneDoc.SetActiveAsDisplay(true);
             presenter.Show();
 
-            var handle = new WindowHandle<T>(presenter);
             var closeSubscription = presenter.CloseRequested
                 .Take(1)
-                .Subscribe(_ => Hide(handle));
-            activeWindows[handle] = new WindowSession(windowInstance, closeSubscription, handle.Invalidate);
+                .Subscribe(_ => Hide(presenter));
+            activeWindows[presenter] = windowInstance;
+            closeSubscriptions[presenter] = closeSubscription;
 
-            return handle;
+            return presenter;
         }
 
-        public void Hide(IWindowHandle _handle)
+        public void Hide(IWindowPresenter _presenter)
         {
-            if (!_handle.IsValid)
+            if (_presenter == null)
             {
                 return;
             }
             
-            if (!activeWindows.Remove(_handle, out var session))
+            if (!activeWindows.Remove(_presenter, out var windowInstance))
             {
                 return;
             }
 
-            session.CloseSubscription.Dispose();
-
-            session.Instance.Presenter.Hide();
-            if (session.Instance.GameObject)
+            if (closeSubscriptions.Remove(_presenter, out var closeSubscription))
             {
-                session.Instance.GameObject.GetComponent<UIDocument>().SetActiveAsDisplay(false);    
+                closeSubscription.Dispose();
             }
 
-            if (session.Instance.IsPooled)
+            windowInstance.Presenter.Hide();
+            if (windowInstance.Document)
             {
-                PushToCache(session.Instance);
+                windowInstance.Document.SetActiveAsDisplay(false);    
+            }
+
+            if (windowInstance.IsPooled)
+            {
+                PushToCache(windowInstance);
             }
             else
             {
-                Debug.Assert(session.Instance.Presenter != null);
+                Debug.Assert(windowInstance.Presenter != null);
                 
-                session.Instance.Presenter.OnDetached();
-                session.Instance.Presenter.Dispose();
+                windowInstance.Presenter.OnDetached();
+                windowInstance.Presenter.Dispose();
             }
-
-            session.InvalidateHandle();
         }
 
         public async UniTask Preload<T>()
@@ -160,9 +153,9 @@ namespace UILib
 
         public void Dispose()
         {
-            foreach (var handle in new List<IWindowHandle>(activeWindows.Keys))
+            foreach (var presenter in new List<IWindowPresenter>(activeWindows.Keys))
             {
-                Hide(handle);
+                Hide(presenter);
             }
 
             foreach (var (key, stack) in cache)
@@ -192,9 +185,15 @@ namespace UILib
             }
 
             var go = await poolingManager.Spawn(_key);
+            if (!go.TryGetComponent<UIDocument>(out var doc))
+            {
+                UnityEngine.Object.Destroy(go);
+                throw new InvalidOperationException($"[UILib] '{_key}' 인스턴스 root 에 UIDocument 가 없습니다. Window prefab 의 루트 GameObject 에 UIDocument 를 추가하세요.");
+            }
+
             var presenter = new T();
             resolver.Inject(presenter);
-            return new WindowInstance(_key, go, presenter, true);
+            return new WindowInstance(_key, doc, presenter, true);
         }
 
         private void PushToCache(WindowInstance _pair)

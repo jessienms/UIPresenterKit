@@ -15,7 +15,7 @@ namespace Samples
         private Button openProfileBtn;
         private Button toggleOptionsBtn;
 
-        private IWindowHandle optionsHandle;
+        private OptionsPanelPresenter optionsPresenter;
 
         [Inject]
         public void OnInjected(UIManager _uiManager, OptionsDocumentRef _optionsRef)
@@ -55,15 +55,15 @@ namespace Samples
 
         private void ToggleOptions()
         {
-            if (optionsHandle is { IsValid: true })
+            if (optionsPresenter != null)
             {
-                uiManager.Hide(optionsHandle);
-                optionsHandle = null;
+                uiManager.Hide(optionsPresenter);
+                optionsPresenter = null;
                 toggleOptionsBtn.text = "옵션 열기";
             }
             else
             {
-                optionsHandle = uiManager.Show<OptionsPanelPresenter>(optionsDocument);
+                optionsPresenter = uiManager.Show<OptionsPanelPresenter>(optionsDocument);
                 toggleOptionsBtn.text = "옵션 닫기";
             }
         }
