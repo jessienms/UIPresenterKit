@@ -2,17 +2,18 @@ using UnityEngine;
 
 namespace UILib
 {
-    internal sealed class WindowPair
+    internal sealed class WindowInstance
     {
         public string Key { get; }
-        public GameObject Go { get; }
+        public GameObject GameObject { get; }
         public IWindowPresenter Presenter { get; }
         public bool IsPooled { get; }
+        public bool IsViewReady { get; set; }
 
-        public WindowPair(string _key, GameObject _go, IWindowPresenter _presenter, bool _isPooled)
+        public WindowInstance(string _key, GameObject _gameObject, IWindowPresenter _presenter, bool _isPooled)
         {
             Key = _key;
-            Go = _go;
+            GameObject = _gameObject;
             Presenter = _presenter;
             IsPooled = _isPooled;
         }

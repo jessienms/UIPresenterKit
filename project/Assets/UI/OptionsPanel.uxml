@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="./OptionsPanel.uss"/>
+    <ui:VisualElement name="overlay" class="overlay" picking-mode="Ignore">
+        <ui:VisualElement name="window" class="window options-window">
+            <ui:VisualElement class="title-bar">
+                <ui:Label text="옵션 (정적 UI 토글 예제)" class="title-label"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="body">
+                <ui:Label text="이 패널은 정적 UIDocument 에 Presenter 를 바인딩한 예시입니다." class="options-info-label"/>
+                <ui:Label text="HUD 의 [옵션 열기 / 옵션 닫기] 버튼으로만 Show/Hide 됩니다." class="options-info-label"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

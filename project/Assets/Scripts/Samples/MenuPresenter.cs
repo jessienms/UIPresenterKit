@@ -6,17 +6,22 @@ using VContainer;
 
 namespace Samples
 {
-    public sealed class HudPresenter : WindowPresenterBase
+    public sealed class MenuPresenter : WindowPresenterBase
     {
         private UIManager uiManager;
+        private UIDocument optionsDocument;
 
         private Button openCounterBtn;
         private Button openProfileBtn;
+        private Button toggleOptionsBtn;
+
+        private IWindowHandle optionsHandle;
 
         [Inject]
-        public void OnInjected(UIManager _uiManager)
+        public void OnInjected(UIManager _uiManager, OptionsDocumentRef _optionsRef)
         {
             uiManager = _uiManager;
+            optionsDocument = _optionsRef.Document;
         }
 
         public override void OnViewReady(UIDocument _doc)
@@ -24,6 +29,7 @@ namespace Samples
             var root = _doc.rootVisualElement;
             openCounterBtn = root.Q<Button>("open-counter-btn");
             openProfileBtn = root.Q<Button>("open-profile-btn");
+            toggleOptionsBtn = root.Q<Button>("toggle-options-btn");
         }
 
         protected override void OnShow()
@@ -35,11 +41,31 @@ namespace Samples
             Observable.FromEvent(_h => openProfileBtn.clicked += _h, _h => openProfileBtn.clicked -= _h)
                 .Subscribe(_ => uiManager.Show<ProfileWindowPresenter>().Forget())
                 .AddTo(disposables);
+
+            Observable.FromEvent(_h => toggleOptionsBtn.clicked += _h, _h => toggleOptionsBtn.clicked -= _h)
+                .Subscribe(_ => ToggleOptions())
+                .AddTo(disposables);
         }
 
         public override void OnDetached()
         {
             uiManager = null;
+            optionsDocument = null;
+        }
+
+        private void ToggleOptions()
+        {
+            if (optionsHandle is { IsValid: true })
+            {
+                uiManager.Hide(optionsHandle);
+                optionsHandle = null;
+                toggleOptionsBtn.text = "옵션 열기";
+            }
+            else
+            {
+                optionsHandle = uiManager.Show<OptionsPanelPresenter>(optionsDocument);
+                toggleOptionsBtn.text = "옵션 닫기";
+            }
         }
     }
 }

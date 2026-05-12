@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace UILib
 {
     /// <summary>
-    /// IWindowPresenter + IWindowLifecycle 를 구현하는 편의 기반 클래스.
+    /// IWindowPresenter 를 구현하는 편의 기반 클래스.
     /// [Window("key")] attribute 와 [Inject] OnInjected(Models...) 메서드를 추가로 선언한다.
     ///
     /// 라이프사이클 순서:
@@ -12,7 +12,7 @@ namespace UILib
     ///   (재사용, 1차 캐시) OnShow → OnHide (반복)
     ///   (재사용, 2차 풀)  OnInjected → OnShow → OnHide (반복) → OnDetached → Dispose
     /// </summary>
-    public abstract class WindowPresenterBase : IWindowPresenter, IWindowLifecycle
+    public abstract class WindowPresenterBase : IWindowPresenter
     {
         private readonly Subject<Unit> closeRequested = new();
 
@@ -35,15 +35,13 @@ namespace UILib
             closeRequested.Dispose();
         }
 
-        // --- IWindowLifecycle (UIManager 전용) ---
-
-        void IWindowLifecycle.Show()
+        public void Show()
         {
             disposables.Clear();
             OnShow();
         }
 
-        void IWindowLifecycle.Hide() => OnHide();
+        public void Hide() => OnHide();
 
         // --- 사용자 오버라이드 대상 ---
 

@@ -1,0 +1,10 @@
+.options-window {
+    width: 480px;
+}
+
+.options-info-label {
+    color: rgb(180, 200, 180);
+    font-size: 14px;
+    white-space: normal;
+    margin-bottom: 8px;
+}

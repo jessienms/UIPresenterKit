@@ -6,14 +6,14 @@ using UnityEngine;
 namespace UILib
 {
     /// <summary>
-    /// 전역 2차 캐시. pair 의 순수 storage 역할만 한다.
+    /// 전역 2차 캐시. window instance 의 순수 storage 역할만 한다.
     /// Presenter 생성 / Inject / OnDetached 호출은 하지 않는다.
     /// Release 전 presenter.OnDetached() 는 UIManager 가 책임진다.
     /// </summary>
     public sealed class UIPoolingManager : IDisposable
     {
         private readonly IAssetLoader assetLoader;
-        private readonly Dictionary<string, Stack<WindowPair>> pool = new();
+        private readonly Dictionary<string, Stack<WindowInstance>> pool = new();
         private Transform poolRoot;
 
         public UIPoolingManager(IAssetLoader _assetLoader)
@@ -34,8 +34,8 @@ namespace UILib
             return go;
         }
 
-        /// <summary>2차 pool 에서 pair 를 꺼낸다. 없으면 null.</summary>
-        internal WindowPair Acquire(string _key)
+        /// <summary>2차 pool 에서 window instance 를 꺼낸다. 없으면 null.</summary>
+        internal WindowInstance Acquire(string _key)
         {
             if (pool.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
@@ -43,15 +43,15 @@ namespace UILib
         }
 
         /// <summary>
-        /// pair 를 2차 pool 에 반환한다.
+        /// window instance 를 2차 pool 에 반환한다.
         /// 전제: presenter.OnDetached() 는 이미 호출됨.
         /// </summary>
-        internal void Release(string _key, WindowPair _pair)
+        internal void Release(string _key, WindowInstance _pair)
         {
-            _pair.Go.SetActive(false);
+            // SetActive 불필요 — UIManager.Hide 가 이미 display:none 으로 처리.
             if (!pool.TryGetValue(_key, out var stack))
             {
-                stack = new Stack<WindowPair>();
+                stack = new Stack<WindowInstance>();
                 pool[_key] = stack;
             }
             stack.Push(_pair);
@@ -64,8 +64,8 @@ namespace UILib
                 while (stack.TryPop(out var pair))
                 {
                     pair.Presenter.Dispose();
-                    if (pair.Go != null)
-                        UnityEngine.Object.Destroy(pair.Go);
+                    if (pair.GameObject != null)
+                        UnityEngine.Object.Destroy(pair.GameObject);
                 }
             }
             pool.Clear();
