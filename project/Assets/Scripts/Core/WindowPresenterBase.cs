@@ -27,8 +27,8 @@ namespace UILib
         public void RequestHide() => hideRequested.OnNext(Unit.Default);
 
         // --- IWindowPresenter ---
-
         public virtual void OnViewReady(VisualElement _root) { }
+
 
         public virtual void OnDetached() { }
 

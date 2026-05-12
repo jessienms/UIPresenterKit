@@ -24,6 +24,12 @@ namespace Samples
             uiManager = _uiManager;
         }
 
+        public override void OnDetached()
+        {
+            counterModel = null;
+            uiManager = null;
+        }
+
         public override void OnViewReady(VisualElement _root)
         {
             closeBtn     = _root.Q<Button>("close-btn");
@@ -60,12 +66,5 @@ namespace Samples
         {
             base.OnHide();
         }
-
-        public override void OnDetached()
-        {
-            counterModel = null;
-            uiManager = null;
-        }
-
     }
 }

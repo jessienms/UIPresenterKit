@@ -24,6 +24,12 @@ namespace Samples
             optionsDocument = _optionsRef.Document;
         }
 
+        public override void OnDetached()
+        {
+            uiManager = null;
+            optionsDocument = null;
+        }
+
         public override void OnViewReady(VisualElement _root)
         {
             openCounterBtn = _root.Q<Button>("open-counter-btn");
@@ -46,12 +52,6 @@ namespace Samples
             Observable.FromEvent(_h => toggleOptionsBtn.clicked += _h, _h => toggleOptionsBtn.clicked -= _h)
                 .Subscribe(_ => ToggleOptions())
                 .AddTo(Disposables);
-        }
-
-        public override void OnDetached()
-        {
-            uiManager = null;
-            optionsDocument = null;
         }
 
         private void ToggleOptions()

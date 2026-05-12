@@ -19,6 +19,11 @@ namespace Samples
             model = _model;
         }
 
+        public override void OnDetached()
+        {
+            model = null;
+        }
+
         public override void OnViewReady(VisualElement _root)
         {
             userNameLabel  = _root.Q<Label>("username-label");
@@ -41,11 +46,6 @@ namespace Samples
             Observable.FromEvent(_h => nextProfileBtn.clicked += _h, _h => nextProfileBtn.clicked -= _h)
                 .Subscribe(_ => model.NextProfile())
                 .AddTo(Disposables);
-        }
-
-        public override void OnDetached()
-        {
-            model = null;
         }
     }
 }

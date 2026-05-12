@@ -15,6 +15,13 @@ namespace Samples
         private Label greetingLabel;
         private VisualElement profileSection;
 
+        public override void OnViewReady(VisualElement _root)
+        {
+            closeBtn      = _root.Q<Button>("close-btn");
+            greetingLabel = _root.Q<Label>("greeting-label");
+            profileSection = _root.Q("profile-section");
+        }
+
         [Inject]
         public void OnInjected(UIManager _uiManager, SampleProfileModel _profile)
         {
@@ -22,11 +29,10 @@ namespace Samples
             profileModel = _profile;
         }
 
-        public override void OnViewReady(VisualElement _root)
+        public override void OnDetached()
         {
-            closeBtn      = _root.Q<Button>("close-btn");
-            greetingLabel = _root.Q<Label>("greeting-label");
-            profileSection = _root.Q("profile-section");
+            uiManager = null;
+            profileModel = null;
         }
 
         public override void OnShow()
@@ -49,12 +55,5 @@ namespace Samples
         {
             base.OnHide();
         }
-
-        public override void OnDetached()
-        {
-            uiManager = null;
-            profileModel = null;
-        }
-
     }
 }
