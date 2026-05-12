@@ -4,9 +4,9 @@ namespace Samples
 {
     public class SampleProfileModel
     {
-        static readonly string[] Names = { "Alice", "Bob", "Charlie", "Diana" };
+        private static readonly string[] Names = { "Alice", "Bob", "Charlie", "Diana" };
 
-        int nameIndex = 0;
+        private int nameIndex = 0;
 
         public ReactiveProperty<string> UserName { get; } = new(Names[0]);
         public ReactiveProperty<int> Level { get; } = new(1);

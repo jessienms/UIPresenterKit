@@ -6,8 +6,8 @@ namespace Samples
 {
     public class ProfilePresenter : IDisposable
     {
-        readonly SampleProfileModel model;
-        readonly CompositeDisposable disposables = new();
+        private readonly SampleProfileModel model;
+        private readonly CompositeDisposable disposables = new();
 
         public ProfilePresenter(SampleProfileModel _model)
         {

@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="./HudWindow.uss"/>
+    <ui:VisualElement name="hud" class="hud" picking-mode="Ignore">
+        <ui:Button name="open-counter-btn" text="카운터 열기" class="hud-btn"/>
+        <ui:Button name="open-profile-btn" text="프로필 열기" class="hud-btn"/>
+    </ui:VisualElement>
+</ui:UXML>

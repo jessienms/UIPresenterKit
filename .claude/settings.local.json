@@ -20,7 +20,13 @@
       "Read(//mnt/c/Work/**)",
       "Bash(rtk git *)",
       "Bash(grep -E \"^\\(Subject|BehaviorSubject|Disposable|CompositeDisposable\\)$|R3\\\\.Disposable\")",
-      "Bash(/c/Windows/System32/find.exe /I \"BehaviorSubject\" \"C:\\\\\\\\Work\\\\\\\\project_uilib\\\\\\\\project\\\\\\\\Assets\\\\\\\\Packages\\\\\\\\R3.1.3.0\\\\\\\\lib\\\\\\\\netstandard2.1\\\\\\\\R3.xml\")"
+      "Bash(/c/Windows/System32/find.exe /I \"BehaviorSubject\" \"C:\\\\\\\\Work\\\\\\\\project_uilib\\\\\\\\project\\\\\\\\Assets\\\\\\\\Packages\\\\\\\\R3.1.3.0\\\\\\\\lib\\\\\\\\netstandard2.1\\\\\\\\R3.xml\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Work\\\\project_uilib\\\\project\\\\Assets\\\\Scripts\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(Format-Table -HideTableHeaders)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Work\\\\project_uilib\\\\project\\\\Assets\\\\Scripts\" -Recurse 2>&1 | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Work\\\\project_uilib\\\\project\\\\Assets\\\\Scripts\\\\Core\" -Recurse 2>&1 | ForEach-Object { $_.FullName })",
+      "Bash(git add *)"
     ]
   }
 }
