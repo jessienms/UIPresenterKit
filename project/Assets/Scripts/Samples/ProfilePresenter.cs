@@ -1,38 +1,51 @@
-using System;
 using R3;
+using UILib;
 using UnityEngine.UIElements;
+using VContainer;
 
 namespace Samples
 {
-    public class ProfilePresenter : IDisposable
+    public sealed class ProfilePresenter : WindowPresenterBase
     {
-        private readonly SampleProfileModel model;
-        private readonly CompositeDisposable disposables = new();
+        private SampleProfileModel model;
 
-        public ProfilePresenter(SampleProfileModel _model)
+        private Label userNameLabel;
+        private Label levelLabel;
+        private Button nextProfileBtn;
+
+        [Inject]
+        public void OnInjected(SampleProfileModel _model)
         {
             model = _model;
         }
 
-        public void Bind(VisualElement _root)
+        public override void OnViewReady(VisualElement _root)
         {
-            var userNameLabel  = _root.Q<Label>("username-label");
-            var levelLabel     = _root.Q<Label>("level-label");
-            var nextProfileBtn = _root.Q<Button>("next-profile-btn");
+            userNameLabel  = _root.Q<Label>("username-label");
+            levelLabel     = _root.Q<Label>("level-label");
+            nextProfileBtn = _root.Q<Button>("next-profile-btn");
+        }
+
+        public override void OnShow()
+        {
+            base.OnShow();
 
             model.UserName
                 .Subscribe(_name => userNameLabel.text = _name)
-                .AddTo(disposables);
+                .AddTo(Disposables);
 
             model.Level
                 .Subscribe(_level => levelLabel.text = $"Lv. {_level}")
-                .AddTo(disposables);
+                .AddTo(Disposables);
 
             Observable.FromEvent(_h => nextProfileBtn.clicked += _h, _h => nextProfileBtn.clicked -= _h)
                 .Subscribe(_ => model.NextProfile())
-                .AddTo(disposables);
+                .AddTo(Disposables);
         }
 
-        public void Dispose() => disposables.Dispose();
+        public override void OnDetached()
+        {
+            model = null;
+        }
     }
 }

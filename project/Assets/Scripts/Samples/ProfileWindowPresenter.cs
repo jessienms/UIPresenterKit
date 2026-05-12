@@ -8,51 +8,53 @@ namespace Samples
     [Window("UI/ProfileWindow")]
     public sealed class ProfileWindowPresenter : WindowPresenterBase
     {
+        private UIManager uiManager;
         private SampleProfileModel profileModel;
 
         private Button closeBtn;
         private Label greetingLabel;
-
-        private ProfilePresenter profilePresenter;
+        private VisualElement profileSection;
 
         [Inject]
-        public void OnInjected(SampleProfileModel _profile)
+        public void OnInjected(UIManager _uiManager, SampleProfileModel _profile)
         {
+            uiManager = _uiManager;
             profileModel = _profile;
         }
 
-        public override void OnViewReady(UIDocument _doc)
+        public override void OnViewReady(VisualElement _root)
         {
-            var root      = _doc.rootVisualElement;
-            closeBtn      = root.Q<Button>("close-btn");
-            greetingLabel = root.Q<Label>("greeting-label");
-
-            // profilePresenter = new ProfilePresenter(profileModel);
-            // profilePresenter.Bind(root.Q("profile-section"));
+            closeBtn      = _root.Q<Button>("close-btn");
+            greetingLabel = _root.Q<Label>("greeting-label");
+            profileSection = _root.Q("profile-section");
         }
 
-        protected override void OnShow()
+        public override void OnShow()
         {
+            base.OnShow();
+
             profileModel.UserName
                 .CombineLatest(profileModel.Level, (_name, _level) => $"안녕하세요, {_name}님! (Lv. {_level})")
                 .Subscribe(_text => greetingLabel.text = _text)
-                .AddTo(disposables);
+                .AddTo(Disposables);
 
             Observable.FromEvent(_h => closeBtn.clicked += _h, _h => closeBtn.clicked -= _h)
-                .Subscribe(_ => RequestClose())
-                .AddTo(disposables);
+                .Subscribe(_ => RequestHide())
+                .AddTo(Disposables);
+
+            uiManager.Show<ProfilePresenter>(profileSection).HideOnHide(this);
+        }
+
+        public override void OnHide()
+        {
+            base.OnHide();
         }
 
         public override void OnDetached()
         {
+            uiManager = null;
             profileModel = null;
         }
 
-        public override void Dispose()
-        {
-            profilePresenter?.Dispose();
-            profilePresenter = null;
-            base.Dispose();
-        }
     }
 }

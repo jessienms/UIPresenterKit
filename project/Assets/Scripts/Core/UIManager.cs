@@ -13,6 +13,7 @@ namespace UILib
     /// scope 당 singleton. Factory + 1차 캐시 + Presenter 반환 역할.
     /// Show&lt;T&gt;()            : 동적 prefab spawn + 1차/2차 캐시. Presenter 반환.
     /// Show&lt;T&gt;(UIDocument)  : 씬 정적 UIDocument 바인딩. 캐싱 없음. Presenter 반환.
+    /// Show&lt;T&gt;(VisualElement): 기존 VisualElement 바인딩. 캐싱 없음. Presenter 반환.
     /// Hide(presenter)       : 1차 캐시로 회수 (동적) 또는 즉시 Dispose (정적).
     /// Preload&lt;T&gt;()         : 활성화 없이 1차 캐시만 채운다.
     /// Dispose 시 1차 캐시 전체를 OnDetached 후 UIPoolingManager 로 이관한다.
@@ -27,7 +28,7 @@ namespace UILib
 
         private readonly Dictionary<string, Stack<WindowInstance>> cache = new();
         private readonly Dictionary<IWindowPresenter, WindowInstance> activeWindows = new();
-        private readonly Dictionary<IWindowPresenter, IDisposable> closeSubscriptions = new();
+        private readonly Dictionary<IWindowPresenter, IDisposable> hideSubscriptions = new();
 
         private int nextOrder;
 
@@ -51,22 +52,19 @@ namespace UILib
             {
                 // 최초 활성화: UIDocument.OnEnable 이 UXML 을 클론하므로 SetActive 가 필요.
                 doc.gameObject.SetActive(true);
-                windowInstance.Presenter.OnViewReady(doc);
+                windowInstance.Presenter.OnViewReady(windowInstance.GetRoot());
                 windowInstance.IsViewReady = true;
             }
             
             // 재사용: 트리는 유효하므로 display 만 복원.
-            doc.SetActiveAsDisplay(true);
+            windowInstance.GetRoot().SetActiveAsDisplay(true);
 
             doc.sortingOrder = ++nextOrder;
-            windowInstance.Presenter.Show();
+            windowInstance.Presenter.OnShow();
 
             var presenter = (T)windowInstance.Presenter;
-            var closeSubscription = windowInstance.Presenter.CloseRequested
-                .Take(1)
-                .Subscribe(_ => Hide(windowInstance.Presenter));
             activeWindows[windowInstance.Presenter] = windowInstance;
-            closeSubscriptions[windowInstance.Presenter] = closeSubscription;
+            SubscribeHideRequest(windowInstance.Presenter);
 
             return presenter;
         }
@@ -91,16 +89,39 @@ namespace UILib
             // GO 가 최초 비활성 상태일 수 있으므로 SetActive(true) 는 항상 호출.
             // 이미 활성이면 no-op. display:none 상태라면 Flex 로 복원.
             _sceneDoc.gameObject.SetActive(true);
-            presenter.OnViewReady(_sceneDoc);
+            presenter.OnViewReady(windowInstance.GetRoot());
             
-            _sceneDoc.SetActiveAsDisplay(true);
-            presenter.Show();
+            windowInstance.GetRoot().SetActiveAsDisplay(true);
+            presenter.OnShow();
 
-            var closeSubscription = presenter.CloseRequested
-                .Take(1)
-                .Subscribe(_ => Hide(presenter));
             activeWindows[presenter] = windowInstance;
-            closeSubscriptions[presenter] = closeSubscription;
+            SubscribeHideRequest(presenter);
+
+            return presenter;
+        }
+
+        /// <summary>
+        /// 기존 VisualElement 노드에 Presenter 를 연결해 활성화한다.
+        /// 외부 소유 VisualElement 이므로 캐싱/풀링 없음.
+        /// </summary>
+        public T Show<T>(VisualElement _root)
+            where T : class, IWindowPresenter, new()
+        {
+            if (_root == null)
+            {
+                throw new ArgumentNullException(nameof(_root));
+            }
+
+            var presenter = new T();
+            resolver.Inject(presenter);
+            var windowInstance = new WindowInstance(null, _root, presenter, false);
+
+            presenter.OnViewReady(_root);
+            _root.SetActiveAsDisplay(true);
+            presenter.OnShow();
+
+            activeWindows[presenter] = windowInstance;
+            SubscribeHideRequest(presenter);
 
             return presenter;
         }
@@ -117,16 +138,13 @@ namespace UILib
                 return;
             }
 
-            if (closeSubscriptions.Remove(_presenter, out var closeSubscription))
+            if (hideSubscriptions.Remove(_presenter, out var hideSubscription))
             {
-                closeSubscription.Dispose();
+                hideSubscription.Dispose();
             }
 
-            windowInstance.Presenter.Hide();
-            if (windowInstance.Document)
-            {
-                windowInstance.Document.SetActiveAsDisplay(false);    
-            }
+            windowInstance.Presenter.OnHide();
+            windowInstance.GetRoot().SetActiveAsDisplay(false);
 
             if (windowInstance.IsPooled)
             {
@@ -204,6 +222,14 @@ namespace UILib
                 cache[_pair.Key] = stack;
             }
             stack.Push(_pair);
+        }
+
+        private void SubscribeHideRequest(IWindowPresenter _presenter)
+        {
+            var hideSubscription = _presenter.HideRequested
+                .Take(1)
+                .Subscribe(_ => Hide(_presenter));
+            hideSubscriptions[_presenter] = hideSubscription;
         }
 
         private static string GetKey(Type _type)

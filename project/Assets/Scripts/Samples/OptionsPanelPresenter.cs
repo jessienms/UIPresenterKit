@@ -5,6 +5,6 @@ namespace Samples
 {
     public sealed class OptionsPanelPresenter : WindowPresenterBase
     {
-        public override void OnViewReady(UIDocument _doc) { }
+        public override void OnViewReady(VisualElement _root) { }
     }
 }

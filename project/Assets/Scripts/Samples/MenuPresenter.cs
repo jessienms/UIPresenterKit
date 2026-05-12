@@ -24,27 +24,28 @@ namespace Samples
             optionsDocument = _optionsRef.Document;
         }
 
-        public override void OnViewReady(UIDocument _doc)
+        public override void OnViewReady(VisualElement _root)
         {
-            var root = _doc.rootVisualElement;
-            openCounterBtn = root.Q<Button>("open-counter-btn");
-            openProfileBtn = root.Q<Button>("open-profile-btn");
-            toggleOptionsBtn = root.Q<Button>("toggle-options-btn");
+            openCounterBtn = _root.Q<Button>("open-counter-btn");
+            openProfileBtn = _root.Q<Button>("open-profile-btn");
+            toggleOptionsBtn = _root.Q<Button>("toggle-options-btn");
         }
 
-        protected override void OnShow()
+        public override void OnShow()
         {
+            base.OnShow();
+
             Observable.FromEvent(_h => openCounterBtn.clicked += _h, _h => openCounterBtn.clicked -= _h)
                 .Subscribe(_ => uiManager.Show<CounterWindowPresenter>().Forget())
-                .AddTo(disposables);
+                .AddTo(Disposables);
 
             Observable.FromEvent(_h => openProfileBtn.clicked += _h, _h => openProfileBtn.clicked -= _h)
                 .Subscribe(_ => uiManager.Show<ProfileWindowPresenter>().Forget())
-                .AddTo(disposables);
+                .AddTo(Disposables);
 
             Observable.FromEvent(_h => toggleOptionsBtn.clicked += _h, _h => toggleOptionsBtn.clicked -= _h)
                 .Subscribe(_ => ToggleOptions())
-                .AddTo(disposables);
+                .AddTo(Disposables);
         }
 
         public override void OnDetached()

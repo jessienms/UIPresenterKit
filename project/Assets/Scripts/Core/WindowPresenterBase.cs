@@ -1,3 +1,4 @@
+using System;
 using R3;
 using UnityEngine.UIElements;
 
@@ -14,42 +15,43 @@ namespace UILib
     /// </summary>
     public abstract class WindowPresenterBase : IWindowPresenter
     {
-        private readonly Subject<Unit> closeRequested = new();
+        private readonly Subject<Unit> hideRequested = new();
+        private readonly Subject<Unit> onHideSubject = new();
 
-        protected readonly CompositeDisposable disposables = new();
+        protected readonly CompositeDisposable Disposables = new();
 
-        public Observable<Unit> CloseRequested => closeRequested;
+        public Observable<Unit> HideRequested => hideRequested;
+        public Observable<Unit> OnHideAsObservable => onHideSubject;
 
-        /// <summary>X 버튼 등 자체 close 트리거 시 호출한다.</summary>
-        protected void RequestClose() => closeRequested.OnNext(Unit.Default);
+        /// <summary>X 버튼 등 자체 hide 트리거 시 호출한다.</summary>
+        public void RequestHide() => hideRequested.OnNext(Unit.Default);
 
         // --- IWindowPresenter ---
 
-        public virtual void OnViewReady(UIDocument _doc) { }
+        public virtual void OnViewReady(VisualElement _root) { }
 
         public virtual void OnDetached() { }
 
         public virtual void Dispose()
         {
-            disposables.Dispose();
-            closeRequested.Dispose();
+            Disposables.Dispose();
+            hideRequested.Dispose();
         }
 
-        public void Show()
+        public virtual void OnShow()
         {
-            disposables.Clear();
-            OnShow();
+            Disposables.Clear();
         }
 
-        public void Hide() => OnHide();
-
-        // --- 사용자 오버라이드 대상 ---
-
-        protected virtual void OnShow() { }
-
-        protected virtual void OnHide()
+        public virtual void OnHide()
         {
-            disposables.Clear();
+            onHideSubject.OnNext(Unit.Default);
+            Disposables.Clear();
+        }
+
+        public void AddTo(IDisposable _disposable)
+        {
+            Disposables.Add(_disposable);
         }
     }
 }
