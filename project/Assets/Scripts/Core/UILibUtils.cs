@@ -14,7 +14,7 @@ namespace UILib
 				Debug.LogError("SetActiveAsDisplay - UIDocument is null.");
 				return;
 			}
-			
+
 			_uiDocument.rootVisualElement.SetActiveAsDisplay(_active);
 		}
 
@@ -25,29 +25,28 @@ namespace UILib
 				Debug.LogError("SetActiveAsDisplay - VisualElement is null.");
 				return;
 			}
-			
+
 			_uiElement.style.display = _active ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 
-		public static T HideOnHide<T>(this T _presenterBase, WindowPresenterBase _base)  where T : WindowPresenterBase
+		public static T HideOnHide<T>(this T _presenterBase, PresenterBase _base) where T : PresenterBase
 		{
 			if (_presenterBase == null)
 			{
 				Debug.LogError("HideOnHide - presenterBase is null.");
 				return null;
 			}
-			
+
 			if (_base == null)
 			{
 				Debug.LogError("HideOnHide - base is null.");
 				return _presenterBase;
 			}
-			
+
 			var subscribeDisposable = _base.OnHideAsObservable.Subscribe(_ => _presenterBase.RequestHide());
 			_base.AddTo(subscribeDisposable);
-			
+
 			return _presenterBase as T;
 		}
-
 	}
 }

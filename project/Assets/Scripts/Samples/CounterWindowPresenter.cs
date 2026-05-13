@@ -6,7 +6,7 @@ using VContainer;
 namespace Samples
 {
     [Window("UI/CounterWindow")]
-    public sealed class CounterWindowPresenter : WindowPresenterBase
+    public sealed class CounterWindowPresenter : PresenterBase
     {
         private SampleCounterModel counterModel;
         private UIManager uiManager;

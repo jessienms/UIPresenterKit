@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/ProfileDetailWindow.uss?fileID=7433441132597879392&amp;guid=0692221f34c5e0344a72b1a84f00e5af&amp;type=3#ProfileDetailWindow"/>
+    <ui:VisualElement name="overlay" class="profile-detail-overlay">
+        <ui:VisualElement name="window" class="profile-detail-window">
+            <ui:VisualElement name="title-bar" class="profile-detail-title-bar">
+                <ui:Label text="Profile Detail" class="profile-detail-title"/>
+                <ui:Button name="close-btn" text="X" class="profile-detail-close-btn"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="body" class="profile-detail-body">
+                <ui:Label name="name-label" text="" class="profile-detail-name"/>
+                <ui:Label name="level-label" text="" class="profile-detail-field"/>
+                <ui:Label name="role-label" text="" class="profile-detail-field"/>
+                <ui:Label name="status-label" text="" class="profile-detail-field"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

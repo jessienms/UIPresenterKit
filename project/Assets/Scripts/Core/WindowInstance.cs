@@ -8,21 +8,21 @@ namespace UILib
         public string Key { get; }
         public UIDocument Document { get; }
         public VisualElement Root { get; private set; }
-        public IWindowPresenter Presenter { get; }
+        public IPresenter Presenter { get; }
         public bool IsPooled { get; }
         public bool IsViewReady { get; set; }
 
-        public WindowInstance(string _key, UIDocument _document, IWindowPresenter _presenter, bool _isPooled)
+        public WindowInstance(string _key, UIDocument _document, IPresenter _presenter, bool _isPooled)
             : this(_key, _document, null, _presenter, _isPooled)
         {
         }
 
-        public WindowInstance(string _key, VisualElement _root, IWindowPresenter _presenter, bool _isPooled)
+        public WindowInstance(string _key, VisualElement _root, IPresenter _presenter, bool _isPooled)
             : this(_key, null, _root, _presenter, _isPooled)
         {
         }
 
-        private WindowInstance(string _key, UIDocument _document, VisualElement _root, IWindowPresenter _presenter, bool _isPooled)
+        private WindowInstance(string _key, UIDocument _document, VisualElement _root, IPresenter _presenter, bool _isPooled)
         {
             if (_document == null && _root == null)
             {

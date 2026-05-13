@@ -5,7 +5,7 @@ using VContainer;
 
 namespace Samples
 {
-    public sealed class ProfilePresenter : WindowPresenterBase
+    public sealed class ProfilePresenter : PresenterBase
     {
         private SampleProfileModel model;
 

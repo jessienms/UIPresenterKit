@@ -11,11 +11,14 @@ namespace UILib
 {
     /// <summary>
     /// scope 당 singleton. Factory + 1차 캐시 + Presenter 반환 역할.
-    /// Show&lt;T&gt;()            : 동적 prefab spawn + 1차/2차 캐시. Presenter 반환.
-    /// Show&lt;T&gt;(UIDocument)  : 씬 정적 UIDocument 바인딩. 캐싱 없음. Presenter 반환.
-    /// Show&lt;T&gt;(VisualElement): 기존 VisualElement 바인딩. 캐싱 없음. Presenter 반환.
-    /// Hide(presenter)       : 1차 캐시로 회수 (동적) 또는 즉시 Dispose (정적).
-    /// Preload&lt;T&gt;()         : 활성화 없이 1차 캐시만 채운다.
+    /// Show&lt;T&gt;()                   : 동적 prefab spawn + 1차/2차 캐시. Presenter 반환.
+    /// Show(args)                   : 동적, 인자 주입. TPresenter/TArgs 는 constraint 로 자동 추론.
+    /// Show&lt;T&gt;(UIDocument)          : 씬 정적 UIDocument 바인딩. 캐싱 없음. Presenter 반환.
+    /// Show(UIDocument, args)       : 정적 UIDocument, 인자 주입.
+    /// Show&lt;T&gt;(VisualElement)       : 기존 VisualElement 바인딩. 캐싱 없음. Presenter 반환.
+    /// Show(VisualElement, args)    : 정적 VisualElement, 인자 주입.
+    /// Hide(presenter)              : 1차 캐시로 회수 (동적) 또는 즉시 Dispose (정적).
+    /// Preload&lt;T&gt;()               : 활성화 없이 1차 캐시만 채운다.
     /// Dispose 시 1차 캐시 전체를 OnDetached 후 UIPoolingManager 로 이관한다.
     ///
     /// 가시성 제어: 최초 활성화만 SetActive(true), 이후 Show/Hide 는 display:flex/none 으로 처리.
@@ -27,8 +30,8 @@ namespace UILib
         private readonly UIPoolingManager poolingManager;
 
         private readonly Dictionary<string, Stack<WindowInstance>> cache = new();
-        private readonly Dictionary<IWindowPresenter, WindowInstance> activeWindows = new();
-        private readonly Dictionary<IWindowPresenter, IDisposable> hideSubscriptions = new();
+        private readonly Dictionary<IPresenter, WindowInstance> activeWindows = new();
+        private readonly Dictionary<IPresenter, IDisposable> hideSubscriptions = new();
 
         private int nextOrder;
 
@@ -40,34 +43,29 @@ namespace UILib
             poolingManager = _poolingManager;
         }
 
+        // --- 동적 Show (prefab spawn) ---
+
         /// <summary>동적 Show: prefab 을 1차/2차 캐시 또는 신규 spawn 으로 확보해 활성화한다.</summary>
         public async UniTask<T> Show<T>()
-            where T : class, IWindowPresenter, new()
+            where T : class, IPresenter, new()
         {
-            var key = GetKey(typeof(T));
-            var windowInstance = await AcquireOrCreate<T>(key);
-            var doc = windowInstance.Document;
-
-            if (!windowInstance.IsViewReady)
-            {
-                // 최초 활성화: UIDocument.OnEnable 이 UXML 을 클론하므로 SetActive 가 필요.
-                doc.gameObject.SetActive(true);
-                windowInstance.Presenter.OnViewReady(windowInstance.GetRoot());
-                windowInstance.IsViewReady = true;
-            }
-            
-            // 재사용: 트리는 유효하므로 display 만 복원.
-            windowInstance.GetRoot().SetActiveAsDisplay(true);
-
-            doc.sortingOrder = ++nextOrder;
-            windowInstance.Presenter.OnShow();
-
-            var presenter = (T)windowInstance.Presenter;
-            activeWindows[windowInstance.Presenter] = windowInstance;
-            SubscribeHideRequest(windowInstance.Presenter);
-
+            var (instance, presenter) = await PrepareDynamic<T>();
+            presenter.OnShow();
+            FinalizeShow(presenter, instance);
             return presenter;
         }
+
+        /// <summary>동적 Show (인자 주입): IPresenterArgs&lt;TPresenter&gt; 파라미터에서 TPresenter 를 추론한다.</summary>
+        public async UniTask<TPresenter> Show<TPresenter>(IPresenterArgs<TPresenter> _args)
+            where TPresenter : class, IPresenter, new()
+        {
+            var (instance, presenter) = await PrepareDynamic<TPresenter>();
+            _args.InvokeOnShow(presenter);
+            FinalizeShow(presenter, instance);
+            return presenter;
+        }
+
+        // --- 정적 Show (UIDocument) ---
 
         /// <summary>
         /// 정적 Show: 씬에 이미 배치된 UIDocument 에 Presenter 를 연결해 활성화한다.
@@ -75,64 +73,53 @@ namespace UILib
         /// [Window] attribute 불필요. sortingOrder 는 씬 설정 그대로 유지.
         /// </summary>
         public T Show<T>(UIDocument _sceneDoc)
-            where T : class, IWindowPresenter, new()
+            where T : class, IPresenter, new()
         {
-            if (_sceneDoc == null)
-            {
-                throw new ArgumentNullException(nameof(_sceneDoc));
-            }
-
-            var presenter = new T();
-            resolver.Inject(presenter);
-            var windowInstance = new WindowInstance(null, _sceneDoc, presenter, false);
-
-            // GO 가 최초 비활성 상태일 수 있으므로 SetActive(true) 는 항상 호출.
-            // 이미 활성이면 no-op. display:none 상태라면 Flex 로 복원.
-            _sceneDoc.gameObject.SetActive(true);
-            presenter.OnViewReady(windowInstance.GetRoot());
-            
-            windowInstance.GetRoot().SetActiveAsDisplay(true);
+            var (instance, presenter) = PrepareStaticDoc<T>(_sceneDoc);
             presenter.OnShow();
-
-            activeWindows[presenter] = windowInstance;
-            SubscribeHideRequest(presenter);
-
+            FinalizeShow(presenter, instance);
             return presenter;
         }
 
-        /// <summary>
-        /// 기존 VisualElement 노드에 Presenter 를 연결해 활성화한다.
-        /// 외부 소유 VisualElement 이므로 캐싱/풀링 없음.
-        /// </summary>
+        /// <summary>정적 Show (인자 주입, UIDocument): IPresenterArgs&lt;TPresenter&gt; 파라미터에서 TPresenter 를 추론한다.</summary>
+        public TPresenter Show<TPresenter>(UIDocument _sceneDoc, IPresenterArgs<TPresenter> _args)
+            where TPresenter : class, IPresenter, new()
+        {
+            var (instance, presenter) = PrepareStaticDoc<TPresenter>(_sceneDoc);
+            _args.InvokeOnShow(presenter);
+            FinalizeShow(presenter, instance);
+            return presenter;
+        }
+
+        // --- 정적 Show (VisualElement) ---
+
+        /// <summary>기존 VisualElement 노드에 Presenter 를 연결해 활성화한다.</summary>
         public T Show<T>(VisualElement _root)
-            where T : class, IWindowPresenter, new()
+            where T : class, IPresenter, new()
         {
-            if (_root == null)
-            {
-                throw new ArgumentNullException(nameof(_root));
-            }
-
-            var presenter = new T();
-            resolver.Inject(presenter);
-            var windowInstance = new WindowInstance(null, _root, presenter, false);
-
-            presenter.OnViewReady(_root);
-            _root.SetActiveAsDisplay(true);
+            var (instance, presenter) = PrepareStaticRoot<T>(_root);
             presenter.OnShow();
-
-            activeWindows[presenter] = windowInstance;
-            SubscribeHideRequest(presenter);
-
+            FinalizeShow(presenter, instance);
             return presenter;
         }
 
-        public void Hide(IWindowPresenter _presenter)
+        /// <summary>기존 VisualElement 노드에 Presenter 를 연결해 활성화한다 (인자 주입).</summary>
+        public TPresenter Show<TPresenter>(VisualElement _root, IPresenterArgs<TPresenter> _args)
+            where TPresenter : class, IPresenter, new()
+        {
+            var (instance, presenter) = PrepareStaticRoot<TPresenter>(_root);
+            _args.InvokeOnShow(presenter);
+            FinalizeShow(presenter, instance);
+            return presenter;
+        }
+
+        public void Hide(IPresenter _presenter)
         {
             if (_presenter == null)
             {
                 return;
             }
-            
+
             if (!activeWindows.Remove(_presenter, out var windowInstance))
             {
                 return;
@@ -153,14 +140,14 @@ namespace UILib
             else
             {
                 Debug.Assert(windowInstance.Presenter != null);
-                
+
                 windowInstance.Presenter.OnDetached();
                 windowInstance.Presenter.Dispose();
             }
         }
 
         public async UniTask Preload<T>()
-            where T : class, IWindowPresenter, new()
+            where T : class, IPresenter, new()
         {
             var key = GetKey(typeof(T));
             if (cache.TryGetValue(key, out var stack) && stack.Count > 0) return;
@@ -171,7 +158,7 @@ namespace UILib
 
         public void Dispose()
         {
-            foreach (var presenter in new List<IWindowPresenter>(activeWindows.Keys))
+            foreach (var presenter in new List<IPresenter>(activeWindows.Keys))
             {
                 Hide(presenter);
             }
@@ -187,8 +174,73 @@ namespace UILib
             cache.Clear();
         }
 
+        // --- Private helpers ---
+
+        private async UniTask<(WindowInstance instance, T presenter)> PrepareDynamic<T>()
+            where T : class, IPresenter, new()
+        {
+            var key = GetKey(typeof(T));
+            var windowInstance = await AcquireOrCreate<T>(key);
+            var doc = windowInstance.Document;
+
+            if (!windowInstance.IsViewReady)
+            {
+                doc.gameObject.SetActive(true);
+                windowInstance.Presenter.OnViewReady(windowInstance.GetRoot());
+                windowInstance.IsViewReady = true;
+            }
+
+            windowInstance.GetRoot().SetActiveAsDisplay(true);
+            doc.sortingOrder = ++nextOrder;
+
+            return (windowInstance, (T)windowInstance.Presenter);
+        }
+
+        private (WindowInstance instance, T presenter) PrepareStaticDoc<T>(UIDocument _sceneDoc)
+            where T : class, IPresenter, new()
+        {
+            if (_sceneDoc == null)
+            {
+                throw new ArgumentNullException(nameof(_sceneDoc));
+            }
+
+            var presenter = new T();
+            resolver.Inject(presenter);
+            var windowInstance = new WindowInstance(null, _sceneDoc, presenter, false);
+
+            _sceneDoc.gameObject.SetActive(true);
+            presenter.OnViewReady(windowInstance.GetRoot());
+            windowInstance.GetRoot().SetActiveAsDisplay(true);
+
+            return (windowInstance, presenter);
+        }
+
+        private (WindowInstance instance, T presenter) PrepareStaticRoot<T>(VisualElement _root)
+            where T : class, IPresenter, new()
+        {
+            if (_root == null)
+            {
+                throw new ArgumentNullException(nameof(_root));
+            }
+
+            var presenter = new T();
+            resolver.Inject(presenter);
+            var windowInstance = new WindowInstance(null, _root, presenter, false);
+
+            presenter.OnViewReady(_root);
+            _root.SetActiveAsDisplay(true);
+
+            return (windowInstance, presenter);
+        }
+
+        private void FinalizeShow(IPresenter _presenter, WindowInstance _instance)
+        {
+            activeWindows[_presenter] = _instance;
+            SubscribeHideRequest(_presenter);
+        }
+
         private async UniTask<WindowInstance> AcquireOrCreate<T>(string _key)
-            where T : class, IWindowPresenter, new()
+            where T : class, IPresenter, new()
         {
             if (cache.TryGetValue(_key, out var stack) && stack.Count > 0)
             {
@@ -224,7 +276,7 @@ namespace UILib
             stack.Push(_pair);
         }
 
-        private void SubscribeHideRequest(IWindowPresenter _presenter)
+        private void SubscribeHideRequest(IPresenter _presenter)
         {
             var hideSubscription = _presenter.HideRequested
                 .Take(1)

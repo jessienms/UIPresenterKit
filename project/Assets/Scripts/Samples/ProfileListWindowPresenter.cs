@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using R3;
 using UILib;
 using UnityEngine;
@@ -7,8 +9,9 @@ using VContainer;
 namespace Samples
 {
     [Window("UI/ProfileListWindow")]
-    public sealed class ProfileListWindowPresenter : WindowPresenterBase
+    public sealed class ProfileListWindowPresenter : PresenterBase
     {
+        private UIManager uiManager;
         private SampleProfileModel profileModel;
         private Button closeBtn;
         private Label countLabel;
@@ -16,8 +19,9 @@ namespace Samples
         private VisualTreeAsset slotTemplate;
 
         [Inject]
-        public void OnInjected(SampleProfileModel _profileModel)
+        public void OnInjected(UIManager _uiManager, SampleProfileModel _profileModel)
         {
+            uiManager = _uiManager;
             profileModel = _profileModel;
         }
 
@@ -50,6 +54,22 @@ namespace Samples
             profileList.itemsSource = profileModel.Profiles;
             profileList.Rebuild();
 
+            Observable.FromEvent<IEnumerable<object>>(
+                    _h => profileList.itemsChosen += _h,
+                    _h => profileList.itemsChosen -= _h)
+                .Subscribe(_items =>
+                {
+                    foreach (var item in _items)
+                    {
+                        if (item is SampleProfileData profile)
+                        {
+                            uiManager.Show(new ProfileDetailArgs(profile)).Forget();
+                            break;
+                        }
+                    }
+                })
+                .AddTo(Disposables);
+
             Observable.FromEvent(_h => closeBtn.clicked += _h, _h => closeBtn.clicked -= _h)
                 .Subscribe(_ => RequestHide())
                 .AddTo(Disposables);
@@ -57,6 +77,7 @@ namespace Samples
 
         public override void OnDetached()
         {
+            uiManager = null;
             profileModel = null;
             closeBtn = null;
             countLabel = null;

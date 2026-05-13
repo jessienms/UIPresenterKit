@@ -6,7 +6,7 @@ using VContainer;
 
 namespace Samples
 {
-    public sealed class MenuPresenter : WindowPresenterBase
+    public sealed class MenuPresenter : PresenterBase
     {
         private UIManager uiManager;
         private UIDocument optionsDocument;

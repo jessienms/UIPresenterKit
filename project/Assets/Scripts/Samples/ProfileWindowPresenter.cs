@@ -6,7 +6,7 @@ using VContainer;
 namespace Samples
 {
     [Window("UI/ProfileWindow")]
-    public sealed class ProfileWindowPresenter : WindowPresenterBase
+    public sealed class ProfileWindowPresenter : PresenterBase
     {
         private UIManager uiManager;
         private SampleProfileModel profileModel;
