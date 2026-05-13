@@ -4,6 +4,7 @@
     <ui:VisualElement name="hud" picking-mode="Ignore" class="hud">
         <ui:Button name="open-counter-btn" text="카운터 열기" class="hud-btn"/>
         <ui:Button name="open-profile-btn" text="프로필 열기" class="hud-btn"/>
+        <ui:Button name="open-profile-list-btn" text="프로필 리스트" class="hud-btn"/>
         <ui:Button name="toggle-options-btn" text="옵션 열기" class="hud-btn hud-btn--options"/>
     </ui:VisualElement>
 </ui:UXML>

@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/ProfileListWindow.uss?fileID=7433441132597879392&amp;guid=266f037caf1f485d918624b76d773643&amp;type=3#ProfileListWindow"/>
+    <ui:VisualElement name="overlay" class="profile-list-overlay">
+        <ui:VisualElement name="window" class="profile-list-window">
+            <ui:VisualElement name="title-bar" class="profile-list-title-bar">
+                <ui:VisualElement class="profile-list-title-copy">
+                    <ui:Label text="ProfileListWindow" class="profile-list-title"/>
+                    <ui:Label name="count-label" text="0 profiles" class="profile-list-count"/>
+                </ui:VisualElement>
+                <ui:Button name="close-btn" text="X" class="profile-list-close-btn"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="profile-list-body">
+                <ui:Label text="Reusable ListView slots" class="profile-list-caption"/>
+                <ui:ListView name="profile-list" class="profile-list-view"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

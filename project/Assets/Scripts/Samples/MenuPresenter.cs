@@ -13,6 +13,7 @@ namespace Samples
 
         private Button openCounterBtn;
         private Button openProfileBtn;
+        private Button openProfileListBtn;
         private Button toggleOptionsBtn;
 
         private OptionsPanelPresenter optionsPresenter;
@@ -34,6 +35,7 @@ namespace Samples
         {
             openCounterBtn = _root.Q<Button>("open-counter-btn");
             openProfileBtn = _root.Q<Button>("open-profile-btn");
+            openProfileListBtn = _root.Q<Button>("open-profile-list-btn");
             toggleOptionsBtn = _root.Q<Button>("toggle-options-btn");
         }
 
@@ -47,6 +49,10 @@ namespace Samples
 
             Observable.FromEvent(_h => openProfileBtn.clicked += _h, _h => openProfileBtn.clicked -= _h)
                 .Subscribe(_ => uiManager.Show<ProfileWindowPresenter>().Forget())
+                .AddTo(Disposables);
+
+            Observable.FromEvent(_h => openProfileListBtn.clicked += _h, _h => openProfileListBtn.clicked -= _h)
+                .Subscribe(_ => uiManager.Show<ProfileListWindowPresenter>().Forget())
                 .AddTo(Disposables);
 
             Observable.FromEvent(_h => toggleOptionsBtn.clicked += _h, _h => toggleOptionsBtn.clicked -= _h)

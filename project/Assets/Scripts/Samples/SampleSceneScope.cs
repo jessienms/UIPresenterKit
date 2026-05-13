@@ -53,6 +53,7 @@ namespace Samples
             // 첫 클릭 응답성을 위해 동적 윈도우 prefab 미리 캐시
             await uiManager.Preload<CounterWindowPresenter>();
             await uiManager.Preload<ProfileWindowPresenter>();
+            await uiManager.Preload<ProfileListWindowPresenter>();
 
             menuDocument.SetActiveAsDisplay(false);
             optionDocument.SetActiveAsDisplay(false);

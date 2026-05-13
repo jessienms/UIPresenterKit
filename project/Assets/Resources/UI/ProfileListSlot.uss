@@ -1,0 +1,48 @@
+.profile-slot {
+    height: 68px;
+    margin: 4px 6px;
+    padding: 8px 12px;
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(47, 51, 57);
+    border-width: 1px;
+    border-color: rgb(75, 82, 91);
+    border-radius: 6px;
+}
+
+.profile-slot:hover {
+    background-color: rgb(55, 60, 68);
+}
+
+.profile-slot-id {
+    width: 56px;
+    color: rgb(148, 199, 255);
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.profile-slot-main {
+    flex-grow: 1;
+}
+
+.profile-slot-name {
+    color: rgb(236, 239, 243);
+    font-size: 15px;
+    -unity-font-style: bold;
+}
+
+.profile-slot-meta {
+    margin-top: 4px;
+    color: rgb(170, 176, 184);
+    font-size: 12px;
+}
+
+.profile-slot-status {
+    width: 76px;
+    height: 26px;
+    color: rgb(222, 232, 242);
+    background-color: rgb(58, 95, 92);
+    border-radius: 4px;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+}

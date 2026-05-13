@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/ProfileSection.uss?fileID=7433441132597879392&amp;guid=477ce89107c9ebe4086d74785b182970&amp;type=3#ProfileSection"/>
-    <ui:VisualElement name="profile" class="profile">
+    <ui:VisualElement name="profile" class="profile" style="flex-direction: row; height: 183px;">
+        <ui:Image source="project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=5866165431930342980&amp;guid=789f3baef8ba3304482fa8396981c097&amp;type=3#Remove@2x" style="height: auto; width: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"/>
         <ui:VisualElement class="profile-info">
             <ui:Label name="username-label" text="" class="username-label"/>
             <ui:Label name="level-label" text="" class="level-label"/>

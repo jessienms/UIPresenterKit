@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/UI/ProfileListSlot.uss?fileID=7433441132597879392&amp;guid=ab57b9e0773d4a0e902aca9435ff914b&amp;type=3#ProfileListSlot"/>
+    <ui:VisualElement class="profile-slot">
+        <ui:Label name="profile-id" text="#000" class="profile-slot-id"/>
+        <ui:VisualElement class="profile-slot-main">
+            <ui:Label name="profile-name" text="Profile Name" class="profile-slot-name"/>
+            <ui:Label name="profile-meta" text="Lv. 1 / Warrior" class="profile-slot-meta"/>
+        </ui:VisualElement>
+        <ui:Label name="profile-status" text="Online" class="profile-slot-status"/>
+    </ui:VisualElement>
+</ui:UXML>
