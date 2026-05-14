@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UILib
 {
-    internal sealed class SlotBinding<TSlot, TData> : IDisposable
+    internal sealed class ListViewBinding<TSlot, TData> : IDisposable
         where TSlot : class, IPresenter<TData>, new()
     {
         private readonly UIManager manager;
@@ -16,7 +16,7 @@ namespace UILib
         private readonly HashSet<ElementInstance> active = new();
         private bool disposed;
 
-        internal SlotBinding(
+        internal ListViewBinding(
             UIManager _manager,
             ListView _listView,
             IList<TData> _items,
@@ -77,7 +77,7 @@ namespace UILib
                 inst.IsHidden = true;
             }
             active.Remove(inst);
-            manager.ReleaseElement(inst);
+            manager.PushToCache(inst);
         }
 
         public void Dispose()
@@ -98,7 +98,7 @@ namespace UILib
                     inst.Presenter.OnHide();
                     inst.IsHidden = true;
                 }
-                manager.ReleaseElement(inst);
+                manager.PushToCache(inst);
             }
             active.Clear();
         }

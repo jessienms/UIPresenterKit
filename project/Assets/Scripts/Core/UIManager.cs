@@ -41,9 +41,9 @@ namespace UILib
         private readonly UIPoolingManager poolingManager;
         private readonly IAssetLoader assetLoader;
 
-        private readonly Dictionary<string, Stack<DocumentInstance>> cache = new();
+        private readonly Dictionary<string, Stack<DocumentInstance>> documentCache = new();
         private readonly Dictionary<string, Stack<ElementInstance>> elementCache = new();
-        private readonly Dictionary<IPresenter, PresenterInstanceBase> activeWindows = new();
+        private readonly Dictionary<IPresenter, PresenterInstanceBase> activePresenters = new();
         private readonly Dictionary<IPresenter, IDisposable> hideSubscriptions = new();
         private readonly Dictionary<string, VisualTreeAsset> uxmlCache = new();
 
@@ -58,13 +58,44 @@ namespace UILib
             assetLoader = _assetLoader;
         }
 
+        public void Dispose()
+        {
+            foreach (var presenter in new List<IPresenter>(activePresenters.Keys))
+            {
+                Hide(presenter);
+            }
+            activePresenters.Clear();
+
+            foreach (var (key, stack) in documentCache)
+            {
+                while (stack.TryPop(out var inst))
+                {
+                    inst.Presenter.OnCleared();
+                    poolingManager.ReleaseDocument(key, inst);
+                }
+            }
+            documentCache.Clear();
+
+            foreach (var (key, stack) in elementCache)
+            {
+                while (stack.TryPop(out var inst))
+                {
+                    inst.Presenter.OnCleared();
+                    poolingManager.ReleaseElement(key, inst);
+                }
+            }
+            elementCache.Clear();
+
+            uxmlCache.Clear();
+        }
+
         // --- 동적 Show (prefab spawn) ---
 
         /// <summary>동적 Show: prefab 을 1차/2차 캐시 또는 신규 spawn 으로 확보해 활성화한다.</summary>
         public async UniTask<T> Show<T>()
             where T : class, IPresenter, new()
         {
-            var (instance, presenter) = await PrepareDynamic<T>();
+            var (instance, presenter) = await PrepareDynamicDocument<T>();
             presenter.OnShow();
             FinalizeShow(presenter, instance);
             return presenter;
@@ -74,7 +105,7 @@ namespace UILib
         public async UniTask<TPresenter> Show<TPresenter>(IPresenterArgs<TPresenter> _args)
             where TPresenter : class, IPresenter, new()
         {
-            var (instance, presenter) = await PrepareDynamic<TPresenter>();
+            var (instance, presenter) = await PrepareDynamicDocument<TPresenter>();
             _args.InvokeOnShow(presenter);
             FinalizeShow(presenter, instance);
             return presenter;
@@ -90,7 +121,7 @@ namespace UILib
         public T Show<T>(UIDocument _sceneDoc)
             where T : class, IPresenter, new()
         {
-            var (instance, presenter) = PrepareStaticDoc<T>(_sceneDoc);
+            var (instance, presenter) = PrepareStaticDocument<T>(_sceneDoc);
             presenter.OnShow();
             FinalizeShow(presenter, instance);
             return presenter;
@@ -100,7 +131,7 @@ namespace UILib
         public TPresenter Show<TPresenter>(UIDocument _sceneDoc, IPresenterArgs<TPresenter> _args)
             where TPresenter : class, IPresenter, new()
         {
-            var (instance, presenter) = PrepareStaticDoc<TPresenter>(_sceneDoc);
+            var (instance, presenter) = PrepareStaticDocument<TPresenter>(_sceneDoc);
             _args.InvokeOnShow(presenter);
             FinalizeShow(presenter, instance);
             return presenter;
@@ -112,7 +143,7 @@ namespace UILib
         public T Show<T>(VisualElement _root)
             where T : class, IPresenter, new()
         {
-            var (instance, presenter) = PrepareStaticRoot<T>(_root);
+            var (instance, presenter) = PrepareStaticElement<T>(_root);
             presenter.OnShow();
             FinalizeShow(presenter, instance);
             return presenter;
@@ -122,7 +153,7 @@ namespace UILib
         public TPresenter Show<TPresenter>(VisualElement _root, IPresenterArgs<TPresenter> _args)
             where TPresenter : class, IPresenter, new()
         {
-            var (instance, presenter) = PrepareStaticRoot<TPresenter>(_root);
+            var (instance, presenter) = PrepareStaticElement<TPresenter>(_root);
             _args.InvokeOnShow(presenter);
             FinalizeShow(presenter, instance);
             return presenter;
@@ -138,7 +169,7 @@ namespace UILib
         public async UniTask<T> ShowAttached<T>(VisualElement _parent)
             where T : class, IPresenter, new()
         {
-            var (instance, presenter) = await PrepareAttach<T>(_parent);
+            var (instance, presenter) = await PrepareDynamicElement<T>(_parent);
             presenter.OnShow();
             FinalizeShow(presenter, instance);
             return presenter;
@@ -148,7 +179,7 @@ namespace UILib
         public async UniTask<TPresenter> ShowAttached<TPresenter>(VisualElement _parent, IPresenterArgs<TPresenter> _args)
             where TPresenter : class, IPresenter, new()
         {
-            var (instance, presenter) = await PrepareAttach<TPresenter>(_parent);
+            var (instance, presenter) = await PrepareDynamicElement<TPresenter>(_parent);
             _args.InvokeOnShow(presenter);
             FinalizeShow(presenter, instance);
             return presenter;
@@ -165,7 +196,7 @@ namespace UILib
             if (_presenter == null)
                 return;
 
-            if (!activeWindows.Remove(_presenter, out var instance))
+            if (!activePresenters.Remove(_presenter, out var instance))
                 return;
 
             if (hideSubscriptions.Remove(_presenter, out var sub))
@@ -183,7 +214,7 @@ namespace UILib
             else if (instance is ElementInstance attached)
             {
                 root.RemoveFromHierarchy();
-                ReleaseElement(attached);
+                PushToCache(attached);
             }
             else
             {
@@ -195,9 +226,9 @@ namespace UILib
             where T : class, IPresenter, new()
         {
             var key = GetKey(typeof(T));
-            if (cache.TryGetValue(key, out var stack) && stack.Count > 0) return;
+            if (documentCache.TryGetValue(key, out var stack) && stack.Count > 0) return;
 
-            var instance = await AcquireOrCreate<T>(key);
+            var instance = await AcquireOrCreateDocument<T>(key);
             PushToCache(instance);
         }
 
@@ -214,52 +245,20 @@ namespace UILib
             where TSlot : class, IPresenter<TData>, new()
         {
             var key = GetKey(typeof(TSlot));
-            if (!uxmlCache.TryGetValue(key, out var uxml))
-            {
-                uxml = await assetLoader.LoadUxmlAsync(key);
-                uxmlCache[key] = uxml;
-            }
+            var uxml = await GetOrLoadUxmlAsync(key);
 
-            var binding = new SlotBinding<TSlot, TData>(this, _listView, _items, key, uxml);
+            var binding = new ListViewBinding<TSlot, TData>(this, _listView, _items, key, uxml);
             binding.Install();
             return binding;
         }
 
-        public void Dispose()
-        {
-            foreach (var presenter in new List<IPresenter>(activeWindows.Keys))
-                Hide(presenter);
-
-            foreach (var (key, stack) in cache)
-            {
-                while (stack.TryPop(out var inst))
-                {
-                    inst.Presenter.OnCleared();
-                    poolingManager.ReleaseDocument(key, inst);
-                }
-            }
-            cache.Clear();
-
-            foreach (var (key, stack) in elementCache)
-            {
-                while (stack.TryPop(out var inst))
-                {
-                    inst.Presenter.OnCleared();
-                    poolingManager.ReleaseElement(key, inst);
-                }
-            }
-            elementCache.Clear();
-
-            uxmlCache.Clear();
-        }
-
         // --- Private helpers ---
 
-        private async UniTask<(DocumentInstance instance, T presenter)> PrepareDynamic<T>()
+        private async UniTask<(DocumentInstance instance, T presenter)> PrepareDynamicDocument<T>()
             where T : class, IPresenter, new()
         {
             var key = GetKey(typeof(T));
-            var instance = await AcquireOrCreate<T>(key);
+            var instance = await AcquireOrCreateDocument<T>(key);
 
             if (!instance.IsViewReady)
             {
@@ -274,24 +273,44 @@ namespace UILib
             return (instance, (T)instance.Presenter);
         }
 
-        private (DocumentInstance instance, T presenter) PrepareStaticDoc<T>(UIDocument _sceneDoc)
+        private async UniTask<(ElementInstance instance, T presenter)> PrepareDynamicElement<T>(VisualElement _parent)
             where T : class, IPresenter, new()
         {
-            if (_sceneDoc == null)
-                throw new ArgumentNullException(nameof(_sceneDoc));
+            if (_parent == null)
+                throw new ArgumentNullException(nameof(_parent));
+
+            var key = GetKey(typeof(T));
+            var instance = await AcquireOrCreateElement<T>(key);
+
+            if (!instance.IsViewReady)
+            {
+                instance.Presenter.OnViewReady(instance.GetRoot());
+                instance.IsViewReady = true;
+            }
+
+            _parent.Add(instance.GetRoot());
+            instance.GetRoot().SetActiveAsDisplay(true);
+            return (instance, (T)instance.Presenter);
+        }
+
+        private (DocumentInstance instance, T presenter) PrepareStaticDocument<T>(UIDocument _document)
+            where T : class, IPresenter, new()
+        {
+            if (_document == null)
+                throw new ArgumentNullException(nameof(_document));
 
             var presenter = new T();
             resolver.Inject(presenter);
-            var instance = new DocumentInstance(null, _sceneDoc, presenter, false);
+            var instance = new DocumentInstance(null, _document, presenter, false);
 
-            _sceneDoc.gameObject.SetActive(true);
+            _document.gameObject.SetActive(true);
             presenter.OnViewReady(instance.GetRoot());
             instance.GetRoot().SetActiveAsDisplay(true);
 
             return (instance, presenter);
         }
 
-        private (ElementInstance instance, T presenter) PrepareStaticRoot<T>(VisualElement _root)
+        private (ElementInstance instance, T presenter) PrepareStaticElement<T>(VisualElement _root)
             where T : class, IPresenter, new()
         {
             if (_root == null)
@@ -309,14 +328,18 @@ namespace UILib
 
         private void FinalizeShow(IPresenter _presenter, PresenterInstanceBase _instance)
         {
-            activeWindows[_presenter] = _instance;
-            SubscribeHideRequest(_presenter);
+            activePresenters[_presenter] = _instance;
+            
+            var sub = _presenter.HideRequested
+                .Take(1)
+                .Subscribe(_ => Hide(_presenter));
+            hideSubscriptions[_presenter] = sub;
         }
 
-        private async UniTask<DocumentInstance> AcquireOrCreate<T>(string _key)
+        private async UniTask<DocumentInstance> AcquireOrCreateDocument<T>(string _key)
             where T : class, IPresenter, new()
         {
-            if (cache.TryGetValue(_key, out var stack) && stack.Count > 0)
+            if (documentCache.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
 
             var existing = poolingManager.AcquireDocument(_key);
@@ -338,22 +361,11 @@ namespace UILib
             return new DocumentInstance(_key, doc, presenter, true);
         }
 
-        private void PushToCache(DocumentInstance _instance)
+        private async UniTask<ElementInstance> AcquireOrCreateElement<T>(string _key)
+            where T : class, IPresenter, new()
         {
-            if (!cache.TryGetValue(_instance.Key, out var stack))
-            {
-                stack = new Stack<DocumentInstance>();
-                cache[_instance.Key] = stack;
-            }
-            stack.Push(_instance);
-        }
-
-        private void SubscribeHideRequest(IPresenter _presenter)
-        {
-            var sub = _presenter.HideRequested
-                .Take(1)
-                .Subscribe(_ => Hide(_presenter));
-            hideSubscriptions[_presenter] = sub;
+            var uxml = await GetOrLoadUxmlAsync(_key);
+            return AcquireOrCreateElement<T>(_key, uxml);
         }
 
         internal ElementInstance AcquireOrCreateElement<T>(string _key, VisualTreeAsset _uxml)
@@ -376,7 +388,17 @@ namespace UILib
             return new ElementInstance(_key, root, presenter, true);
         }
 
-        internal void ReleaseElement(ElementInstance _instance)
+        private void PushToCache(DocumentInstance _instance)
+        {
+            if (!documentCache.TryGetValue(_instance.Key, out var stack))
+            {
+                stack = new Stack<DocumentInstance>();
+                documentCache[_instance.Key] = stack;
+            }
+            stack.Push(_instance);
+        }
+
+        internal void PushToCache(ElementInstance _instance)
         {
             if (!elementCache.TryGetValue(_instance.Key, out var stack))
             {
@@ -386,35 +408,14 @@ namespace UILib
             stack.Push(_instance);
         }
 
-        private async UniTask<(ElementInstance instance, T presenter)> PrepareAttach<T>(VisualElement _parent)
-            where T : class, IPresenter, new()
-        {
-            if (_parent == null)
-                throw new ArgumentNullException(nameof(_parent));
-
-            var key = GetKey(typeof(T));
-            var instance = await AcquireOrCreateElement<T>(key);
-
-            if (!instance.IsViewReady)
-            {
-                instance.Presenter.OnViewReady(instance.GetRoot());
-                instance.IsViewReady = true;
-            }
-
-            _parent.Add(instance.GetRoot());
-            instance.GetRoot().SetActiveAsDisplay(true);
-            return (instance, (T)instance.Presenter);
-        }
-
-        private async UniTask<ElementInstance> AcquireOrCreateElement<T>(string _key)
-            where T : class, IPresenter, new()
+        private async UniTask<VisualTreeAsset> GetOrLoadUxmlAsync(string _key)
         {
             if (!uxmlCache.TryGetValue(_key, out var uxml))
             {
                 uxml = await assetLoader.LoadUxmlAsync(_key);
                 uxmlCache[_key] = uxml;
             }
-            return AcquireOrCreateElement<T>(_key, uxml);
+            return uxml;
         }
 
         private static string GetKey(Type _type)
