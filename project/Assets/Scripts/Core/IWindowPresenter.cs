@@ -2,7 +2,7 @@ using System;
 using R3;
 using UnityEngine.UIElements;
 
-namespace UILib
+namespace UIPresenterKit.Core
 {
     /// <summary>
     /// [Window("key")] attribute 로 prefab 키를 지정한다.

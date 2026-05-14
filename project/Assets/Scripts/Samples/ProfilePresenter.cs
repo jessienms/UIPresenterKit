@@ -1,9 +1,9 @@
 using R3;
-using UILib;
+using UIPresenterKit.Core;
 using UnityEngine.UIElements;
 using VContainer;
 
-namespace Samples
+namespace UIPresenterKit.Samples
 {
     public sealed class ProfilePresenter : PresenterBase
     {

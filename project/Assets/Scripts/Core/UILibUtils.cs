@@ -1,10 +1,9 @@
 using System;
 using R3;
-using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UILib
+namespace UIPresenterKit.Core
 {
 	public static class UILibUtils
 	{

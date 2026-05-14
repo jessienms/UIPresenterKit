@@ -1,10 +1,9 @@
 using System;
 using R3;
-using Unity.VisualScripting;
 using UnityEngine.UIElements;
 using Unit = R3.Unit;
 
-namespace UILib
+namespace UIPresenterKit.Core
 {
     /// <summary>
     /// IPresenter 를 구현하는 편의 기반 클래스.

@@ -1,9 +1,9 @@
 using R3;
-using UILib;
+using UIPresenterKit.Core;
 using UnityEngine.UIElements;
 using VContainer;
 
-namespace Samples
+namespace UIPresenterKit.Samples
 {
     [Window("UI/CounterWindow")]
     public sealed class CounterWindowPresenter : PresenterBase

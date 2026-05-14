@@ -1,11 +1,11 @@
 using Cysharp.Threading.Tasks;
-using UILib;
+using UIPresenterKit.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
 
-namespace Samples
+namespace UIPresenterKit.Samples
 {
     /// <summary>
     /// 씬 LifetimeScope. UIManager 와 공유 Model 을 등록한다.

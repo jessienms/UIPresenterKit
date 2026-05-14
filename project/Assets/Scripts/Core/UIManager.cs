@@ -6,7 +6,7 @@ using R3;
 using UnityEngine.UIElements;
 using VContainer;
 
-namespace UILib
+namespace UIPresenterKit.Core
 {
     /// <summary>
     /// scope 당 singleton. Factory + 1차 캐시 + Presenter 반환 역할.

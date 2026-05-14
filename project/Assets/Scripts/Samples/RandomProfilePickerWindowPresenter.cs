@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using R3;
-using UILib;
+using UIPresenterKit.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
 
-namespace Samples
+namespace UIPresenterKit.Samples
 {
     [Window("UI/RandomProfilePickerWindow")]
     public sealed class RandomProfilePickerWindowPresenter : PresenterBase

@@ -2,7 +2,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UILib
+namespace UIPresenterKit.Core
 {
     public interface IAssetLoader
     {

@@ -477,7 +477,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Samples.SampleSceneScope
   parentReference:
-    TypeName: Samples.SampleAppScope
+    TypeName: UIPresenterKit.Samples.SampleAppScope
   autoRun: 1
   autoInjectGameObjects: []
   menuDocument: {fileID: 1778152124}

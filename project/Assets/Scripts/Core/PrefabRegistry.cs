@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UILib
+namespace UIPresenterKit.Core
 {
     /// <summary>
     /// key → prefab / UXML 매핑을 Inspector 에서 직접 지정하는 IAssetLoader 구현체.

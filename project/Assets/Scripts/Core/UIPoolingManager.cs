@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UILib
+namespace UIPresenterKit.Core
 {
     /// <summary>
     /// 전역 2차 캐시. presenter instance 의 순수 storage 역할만 한다.

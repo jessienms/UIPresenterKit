@@ -1,9 +1,9 @@
-using UILib;
+using UIPresenterKit.Core;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Samples
+namespace UIPresenterKit.Samples
 {
     /// <summary>
     /// 앱 루트 LifetimeScope. UIPoolingManager 를 전역 singleton 으로 등록한다.

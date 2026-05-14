@@ -1,6 +1,6 @@
 using UnityEngine.UIElements;
 
-namespace UILib
+namespace UIPresenterKit.Core
 {
     internal abstract class PresenterInstanceBase
     {
