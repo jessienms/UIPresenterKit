@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/RandomProfilePickerWindow.uss?fileID=7433441132597879392&amp;guid=b2c3d4e5f6071829a3b4c5d6e7f8091a&amp;type=3#RandomProfilePickerWindow"/>
+    <ui:VisualElement name="overlay" class="picker-overlay">
+        <ui:VisualElement name="window" class="picker-window">
+            <ui:VisualElement name="title-bar" class="picker-title-bar">
+                <ui:Label text="Random Profile Picker" class="picker-title"/>
+                <ui:Button name="close-btn" text="X" class="picker-close-btn"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="controls" class="picker-controls">
+                <ui:Button name="add-btn" text="+" class="picker-add-btn"/>
+                <ui:Label name="count-label" text="0 / 3" class="picker-count-label"/>
+                <ui:Button name="remove-btn" text="-" class="picker-remove-btn"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="slot-area" class="picker-slot-area"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

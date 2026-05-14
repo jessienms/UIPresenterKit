@@ -64,6 +64,7 @@
 
 .profile-list-body {
     flex-grow: 1;
+    min-height: 0;
     padding: 14px 16px 16px;
 }
 
@@ -79,4 +80,27 @@
     border-width: 1px;
     border-color: rgb(70, 76, 84);
     border-radius: 6px;
+}
+
+.profile-list-footer {
+    flex-shrink: 0;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 8px 16px 12px;
+    border-top-width: 1px;
+    border-top-color: rgb(70, 76, 84);
+}
+
+.profile-list-action-btn {
+    height: 32px;
+    padding: 0 16px;
+    background-color: rgb(58, 95, 92);
+    color: rgb(236, 239, 243);
+    border-width: 0;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.profile-list-action-btn:hover {
+    background-color: rgb(70, 115, 110);
 }

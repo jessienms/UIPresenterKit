@@ -54,6 +54,7 @@ namespace Samples
             await uiManager.Preload<CounterWindowPresenter>();
             await uiManager.Preload<ProfileWindowPresenter>();
             await uiManager.Preload<ProfileListWindowPresenter>();
+            await uiManager.Preload<RandomProfilePickerWindowPresenter>();
 
             menuDocument.SetActiveAsDisplay(false);
             optionDocument.SetActiveAsDisplay(false);

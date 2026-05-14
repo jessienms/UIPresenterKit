@@ -1,3 +1,4 @@
+using System;
 using R3;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
@@ -47,6 +48,18 @@ namespace UILib
 			_base.AddTo(subscribeDisposable);
 
 			return _presenterBase as T;
+		}
+
+		public static void DisposeOnHide(this IDisposable _disposable, PresenterBase _base)
+		{
+			if (_base == null)
+			{
+				Debug.LogError("DisposeOnHide - base is null.");
+				return;
+			}
+			
+			var subscribeDisposable = _base.OnHideAsObservable.Subscribe(_ => _disposable.Dispose());
+			_base.AddTo(subscribeDisposable);
 		}
 	}
 }

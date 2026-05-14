@@ -21,3 +21,8 @@ MonoBehaviour:
     prefab: {fileID: 8201892022459001001, guid: 962f639ee2e44e3b9b4fd4ee9230c91d, type: 3}
   - key: UI/ProfileDetailWindow
     prefab: {fileID: 5432109876543210001, guid: a8f2c1e3b4d5609721834756a9b0c2d1, type: 3}
+  - key: UI/RandomProfilePickerWindow
+    prefab: {fileID: 7654321987654321001, guid: c3d4e5f607182930b4c5d6e7f80912ab, type: 3}
+  uxmlEntries:
+  - key: UI/ProfileListSlot
+    uxml: {fileID: 9197481963319205126, guid: 158579056b784a16b364591cd4b69630, type: 3}

@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UILib
 {
     /// <summary>
-    /// key → prefab 매핑을 Inspector 에서 직접 지정하는 IAssetLoader 구현체.
+    /// key → prefab / UXML 매핑을 Inspector 에서 직접 지정하는 IAssetLoader 구현체.
     /// Addressables 도입 전 개발 단계에서 사용한다.
     /// Assets 메뉴: Create > UILib > PrefabRegistry
     /// </summary>
@@ -20,9 +21,18 @@ namespace UILib
             public GameObject prefab;
         }
 
+        [Serializable]
+        private struct UxmlEntry
+        {
+            public string key;
+            public VisualTreeAsset uxml;
+        }
+
         [SerializeField] private Entry[] entries = Array.Empty<Entry>();
+        [SerializeField] private UxmlEntry[] uxmlEntries = Array.Empty<UxmlEntry>();
 
         private Dictionary<string, GameObject> lookup;
+        private Dictionary<string, VisualTreeAsset> uxmlLookup;
 
         public UniTask<GameObject> LoadAsync(string _key)
         {
@@ -38,6 +48,22 @@ namespace UILib
                 throw new KeyNotFoundException($"[UILib] PrefabRegistry: '{_key}' 에 등록된 prefab 이 없습니다.");
 
             return UniTask.FromResult(prefab);
+        }
+
+        public UniTask<VisualTreeAsset> LoadUxmlAsync(string _key)
+        {
+            if (uxmlLookup == null)
+            {
+                uxmlLookup = new Dictionary<string, VisualTreeAsset>(uxmlEntries.Length);
+                foreach (var e in uxmlEntries)
+                    if (!string.IsNullOrEmpty(e.key) && e.uxml != null)
+                        uxmlLookup[e.key] = e.uxml;
+            }
+
+            if (!uxmlLookup.TryGetValue(_key, out var uxml))
+                throw new KeyNotFoundException($"[UILib] PrefabRegistry: '{_key}' 에 등록된 UXML 이 없습니다.");
+
+            return UniTask.FromResult(uxml);
         }
     }
 }

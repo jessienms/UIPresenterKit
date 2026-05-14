@@ -1,0 +1,103 @@
+.picker-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.picker-window {
+    width: 520px;
+    background-color: rgb(40, 43, 48);
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgb(82, 88, 96);
+}
+
+.picker-title-bar {
+    height: 56px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background-color: rgb(31, 34, 38);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(82, 88, 96);
+}
+
+.picker-title {
+    font-size: 16px;
+    color: rgb(235, 238, 242);
+    -unity-font-style: bold;
+}
+
+.picker-close-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    color: rgb(210, 214, 220);
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 4px;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.picker-close-btn:hover {
+    background-color: rgb(190, 64, 72);
+    color: rgb(255, 255, 255);
+}
+
+.picker-controls {
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(60, 65, 72);
+}
+
+.picker-add-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    color: rgb(236, 239, 243);
+    background-color: rgb(46, 106, 79);
+    border-width: 0;
+    border-radius: 6px;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.picker-add-btn:hover { background-color: rgb(56, 128, 96); }
+.picker-add-btn:disabled { background-color: rgb(50, 55, 62); color: rgb(120, 126, 134); }
+
+.picker-count-label {
+    flex-grow: 1;
+    font-size: 14px;
+    color: rgb(148, 199, 255);
+    -unity-text-align: middle-center;
+}
+
+.picker-remove-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
+    color: rgb(236, 239, 243);
+    background-color: rgb(130, 54, 54);
+    border-width: 0;
+    border-radius: 6px;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.picker-remove-btn:hover { background-color: rgb(160, 64, 64); }
+.picker-remove-btn:disabled { background-color: rgb(50, 55, 62); color: rgb(120, 126, 134); }
+
+.picker-slot-area {
+    flex-direction: column;
+    padding: 8px 4px;
+    min-height: 96px;
+}

@@ -13,6 +13,9 @@
                 <ui:Label text="Reusable ListView slots" class="profile-list-caption"/>
                 <ui:ListView name="profile-list" class="profile-list-view"/>
             </ui:VisualElement>
+            <ui:VisualElement class="profile-list-footer">
+                <ui:Button name="random-pick-btn" text="랜덤 선택" class="profile-list-action-btn"/>
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

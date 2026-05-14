@@ -14,7 +14,8 @@ namespace UILib
     public sealed class UIPoolingManager : IDisposable
     {
         private readonly IAssetLoader assetLoader;
-        private readonly Dictionary<string, Stack<WindowInstance>> pool = new();
+        private readonly Dictionary<string, Stack<PresenterInstance>> pool = new();
+        private readonly Dictionary<string, Stack<PresenterInstance>> attachedPool = new();
         private Transform poolRoot;
 
         public UIPoolingManager(IAssetLoader _assetLoader)
@@ -45,24 +46,46 @@ namespace UILib
             return go;
         }
 
-        /// <summary>2차 pool 에서 window instance 를 꺼낸다. 없으면 null.</summary>
-        internal WindowInstance Acquire(string _key)
+        /// <summary>2차 pool 에서 presenter instance 를 꺼낸다. 없으면 null.</summary>
+        internal PresenterInstance Acquire(string _key)
         {
             if (pool.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
             return null;
         }
 
+        /// <summary>UXML 기반 attached presenter 를 2차 풀에서 꺼낸다. 없으면 null.</summary>
+        internal PresenterInstance AcquireAttached(string _key)
+        {
+            if (attachedPool.TryGetValue(_key, out var stack) && stack.Count > 0)
+                return stack.Pop();
+            return null;
+        }
+
         /// <summary>
-        /// window instance 를 2차 pool 에 반환한다.
+        /// UXML 기반 attached presenter 를 2차 풀에 반환한다.
         /// 전제: presenter.OnDetached() 는 이미 호출됨.
         /// </summary>
-        internal void Release(string _key, WindowInstance _pair)
+        internal void ReleaseAttached(string _key, PresenterInstance _instance)
+        {
+            if (!attachedPool.TryGetValue(_key, out var stack))
+            {
+                stack = new Stack<PresenterInstance>();
+                attachedPool[_key] = stack;
+            }
+            stack.Push(_instance);
+        }
+
+        /// <summary>
+        /// presenter instance 를 2차 pool 에 반환한다.
+        /// 전제: presenter.OnDetached() 는 이미 호출됨.
+        /// </summary>
+        internal void Release(string _key, PresenterInstance _pair)
         {
             // SetActive 불필요 — UIManager.Hide 가 이미 display:none 으로 처리.
             if (!pool.TryGetValue(_key, out var stack))
             {
-                stack = new Stack<WindowInstance>();
+                stack = new Stack<PresenterInstance>();
                 pool[_key] = stack;
             }
             stack.Push(_pair);
@@ -80,6 +103,13 @@ namespace UILib
                 }
             }
             pool.Clear();
+
+            foreach (var stack in attachedPool.Values)
+            {
+                while (stack.TryPop(out var pair))
+                    pair.Presenter.Dispose();
+            }
+            attachedPool.Clear();
 
             if (poolRoot != null)
             {
