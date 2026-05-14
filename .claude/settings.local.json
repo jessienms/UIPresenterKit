@@ -30,7 +30,9 @@
       "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(Select-String \"sourceAsset\" \"C:\\\\Work\\\\project_uilib\\\\project\\\\Assets\\\\UI\\\\CounterWindow.prefab\")",
-      "Bash(Select-Object -ExpandProperty Line)"
+      "Bash(Select-Object -ExpandProperty Line)",
+      "Bash(rtk ls *)",
+      "Bash(gh repo *)"
     ]
   }
 }
