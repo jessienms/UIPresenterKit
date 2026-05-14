@@ -25,7 +25,7 @@ namespace UILib
     /// Hide(presenter)                  : 통합 cleanup. 마운팅 방식에 따라 자동 분기한다.
     ///                                    - 동적 Show       → 1차 캐시로 회수
     ///                                    - 정적 Show       → 즉시 OnCleared + Dispose
-    ///                                    - 동적 ShowAttached → parent 에서 분리 후 1차 attached 캐시로 회수
+    ///                                    - 동적 ShowAttached → parent 에서 분리 후 1차 캐시로 회수
     ///
     /// 기타:
     /// Preload&lt;T&gt;()                    : 활성화 없이 1차 캐시만 채운다.
@@ -41,11 +41,10 @@ namespace UILib
         private readonly UIPoolingManager poolingManager;
         private readonly IAssetLoader assetLoader;
 
-        private readonly Dictionary<string, Stack<WindowInstance>> cache = new();
-        private readonly Dictionary<string, Stack<AttachedInstance>> attachedCache = new();
+        private readonly Dictionary<string, Stack<DocumentInstance>> cache = new();
+        private readonly Dictionary<string, Stack<ElementInstance>> elementCache = new();
         private readonly Dictionary<IPresenter, PresenterInstanceBase> activeWindows = new();
         private readonly Dictionary<IPresenter, IDisposable> hideSubscriptions = new();
-        private readonly Dictionary<string, Stack<AttachedInstance>> slotCache = new();
         private readonly Dictionary<string, VisualTreeAsset> uxmlCache = new();
 
         private int nextOrder;
@@ -157,9 +156,9 @@ namespace UILib
 
         /// <summary>
         /// Show / ShowAttached 로 활성화한 Presenter 를 비활성화한다. 마운팅 방식에 따라 자동 분기:
-        /// - 동적 Show (WindowInstance + pooled): 1차 캐시로 회수
+        /// - 동적 Show (DocumentInstance + pooled): 1차 캐시로 회수
         /// - 정적 Show (UIDocument/VisualElement, not pooled): 즉시 OnCleared + Dispose
-        /// - 동적 ShowAttached (AttachedInstance + pooled): parent 에서 분리 후 1차 attached 캐시로 회수
+        /// - 동적 ShowAttached (ElementInstance + pooled): parent 에서 분리 후 1차 캐시로 회수
         /// </summary>
         public void Hide(IPresenter _presenter)
         {
@@ -181,14 +180,14 @@ namespace UILib
                 instance.Presenter.OnCleared();
                 instance.Presenter.Dispose();
             }
-            else if (instance is AttachedInstance attached)
+            else if (instance is ElementInstance attached)
             {
                 root.RemoveFromHierarchy();
-                PushToAttachedCache(attached);
+                ReleaseElement(attached);
             }
             else
             {
-                PushToCache((WindowInstance)instance);
+                PushToCache((DocumentInstance)instance);
             }
         }
 
@@ -236,36 +235,27 @@ namespace UILib
                 while (stack.TryPop(out var inst))
                 {
                     inst.Presenter.OnCleared();
-                    poolingManager.ReleaseWindow(key, inst);
+                    poolingManager.ReleaseDocument(key, inst);
                 }
             }
             cache.Clear();
 
-            foreach (var (key, stack) in attachedCache)
+            foreach (var (key, stack) in elementCache)
             {
                 while (stack.TryPop(out var inst))
                 {
                     inst.Presenter.OnCleared();
-                    poolingManager.ReleaseAttached(key, inst);
+                    poolingManager.ReleaseElement(key, inst);
                 }
             }
-            attachedCache.Clear();
+            elementCache.Clear();
 
-            foreach (var stack in slotCache.Values)
-            {
-                while (stack.TryPop(out var inst))
-                {
-                    inst.Presenter.OnCleared();
-                    inst.Presenter.Dispose();
-                }
-            }
-            slotCache.Clear();
             uxmlCache.Clear();
         }
 
         // --- Private helpers ---
 
-        private async UniTask<(WindowInstance instance, T presenter)> PrepareDynamic<T>()
+        private async UniTask<(DocumentInstance instance, T presenter)> PrepareDynamic<T>()
             where T : class, IPresenter, new()
         {
             var key = GetKey(typeof(T));
@@ -284,7 +274,7 @@ namespace UILib
             return (instance, (T)instance.Presenter);
         }
 
-        private (WindowInstance instance, T presenter) PrepareStaticDoc<T>(UIDocument _sceneDoc)
+        private (DocumentInstance instance, T presenter) PrepareStaticDoc<T>(UIDocument _sceneDoc)
             where T : class, IPresenter, new()
         {
             if (_sceneDoc == null)
@@ -292,7 +282,7 @@ namespace UILib
 
             var presenter = new T();
             resolver.Inject(presenter);
-            var instance = new WindowInstance(null, _sceneDoc, presenter, false);
+            var instance = new DocumentInstance(null, _sceneDoc, presenter, false);
 
             _sceneDoc.gameObject.SetActive(true);
             presenter.OnViewReady(instance.GetRoot());
@@ -301,7 +291,7 @@ namespace UILib
             return (instance, presenter);
         }
 
-        private (AttachedInstance instance, T presenter) PrepareStaticRoot<T>(VisualElement _root)
+        private (ElementInstance instance, T presenter) PrepareStaticRoot<T>(VisualElement _root)
             where T : class, IPresenter, new()
         {
             if (_root == null)
@@ -309,7 +299,7 @@ namespace UILib
 
             var presenter = new T();
             resolver.Inject(presenter);
-            var instance = new AttachedInstance(null, _root, presenter, false);
+            var instance = new ElementInstance(null, _root, presenter, false);
 
             presenter.OnViewReady(_root);
             _root.SetActiveAsDisplay(true);
@@ -323,13 +313,13 @@ namespace UILib
             SubscribeHideRequest(_presenter);
         }
 
-        private async UniTask<WindowInstance> AcquireOrCreate<T>(string _key)
+        private async UniTask<DocumentInstance> AcquireOrCreate<T>(string _key)
             where T : class, IPresenter, new()
         {
             if (cache.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
 
-            var existing = poolingManager.AcquireWindow(_key);
+            var existing = poolingManager.AcquireDocument(_key);
             if (existing != null)
             {
                 resolver.Inject(existing.Presenter);
@@ -345,14 +335,14 @@ namespace UILib
 
             var presenter = new T();
             resolver.Inject(presenter);
-            return new WindowInstance(_key, doc, presenter, true);
+            return new DocumentInstance(_key, doc, presenter, true);
         }
 
-        private void PushToCache(WindowInstance _instance)
+        private void PushToCache(DocumentInstance _instance)
         {
             if (!cache.TryGetValue(_instance.Key, out var stack))
             {
-                stack = new Stack<WindowInstance>();
+                stack = new Stack<DocumentInstance>();
                 cache[_instance.Key] = stack;
             }
             stack.Push(_instance);
@@ -366,40 +356,44 @@ namespace UILib
             hideSubscriptions[_presenter] = sub;
         }
 
-        internal AttachedInstance AcquireSlot<TSlot>(string _key, VisualTreeAsset _uxml)
-            where TSlot : class, IPresenter, new()
+        internal ElementInstance AcquireOrCreateElement<T>(string _key, VisualTreeAsset _uxml)
+            where T : class, IPresenter, new()
         {
-            if (slotCache.TryGetValue(_key, out var stack) && stack.Count > 0)
+            if (elementCache.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
+
+            var existing = poolingManager.AcquireElement(_key);
+            if (existing != null)
+            {
+                resolver.Inject(existing.Presenter);
+                return existing;
+            }
 
             var root = _uxml.CloneTree();
             root.style.flexGrow = 1;
-            var presenter = new TSlot();
+            var presenter = new T();
             resolver.Inject(presenter);
-            var instance = new AttachedInstance(_key, root, presenter, true);
-            presenter.OnViewReady(root);
-            instance.IsViewReady = true;
-            return instance;
+            return new ElementInstance(_key, root, presenter, true);
         }
 
-        internal void ReleaseSlot(string _key, AttachedInstance _instance)
+        internal void ReleaseElement(ElementInstance _instance)
         {
-            if (!slotCache.TryGetValue(_key, out var stack))
+            if (!elementCache.TryGetValue(_instance.Key, out var stack))
             {
-                stack = new Stack<AttachedInstance>();
-                slotCache[_key] = stack;
+                stack = new Stack<ElementInstance>();
+                elementCache[_instance.Key] = stack;
             }
             stack.Push(_instance);
         }
 
-        private async UniTask<(AttachedInstance instance, T presenter)> PrepareAttach<T>(VisualElement _parent)
+        private async UniTask<(ElementInstance instance, T presenter)> PrepareAttach<T>(VisualElement _parent)
             where T : class, IPresenter, new()
         {
             if (_parent == null)
                 throw new ArgumentNullException(nameof(_parent));
 
             var key = GetKey(typeof(T));
-            var instance = await AcquireOrCreateAttached<T>(key);
+            var instance = await AcquireOrCreateElement<T>(key);
 
             if (!instance.IsViewReady)
             {
@@ -412,41 +406,15 @@ namespace UILib
             return (instance, (T)instance.Presenter);
         }
 
-        private async UniTask<AttachedInstance> AcquireOrCreateAttached<T>(string _key)
+        private async UniTask<ElementInstance> AcquireOrCreateElement<T>(string _key)
             where T : class, IPresenter, new()
         {
-            if (attachedCache.TryGetValue(_key, out var stack) && stack.Count > 0)
-                return stack.Pop();
-
-            var existing = poolingManager.AcquireAttached(_key);
-            if (existing != null)
-            {
-                resolver.Inject(existing.Presenter);
-                return existing;
-            }
-
             if (!uxmlCache.TryGetValue(_key, out var uxml))
             {
                 uxml = await assetLoader.LoadUxmlAsync(_key);
                 uxmlCache[_key] = uxml;
             }
-
-            var root = uxml.CloneTree();
-            root.style.flexGrow = 1;
-
-            var presenter = new T();
-            resolver.Inject(presenter);
-            return new AttachedInstance(_key, root, presenter, true);
-        }
-
-        private void PushToAttachedCache(AttachedInstance _instance)
-        {
-            if (!attachedCache.TryGetValue(_instance.Key, out var stack))
-            {
-                stack = new Stack<AttachedInstance>();
-                attachedCache[_instance.Key] = stack;
-            }
-            stack.Push(_instance);
+            return AcquireOrCreateElement<T>(_key, uxml);
         }
 
         private static string GetKey(Type _type)

@@ -13,7 +13,7 @@ namespace UILib
         private readonly IList<TData> items;
         private readonly string key;
         private readonly VisualTreeAsset uxml;
-        private readonly HashSet<AttachedInstance> active = new();
+        private readonly HashSet<ElementInstance> active = new();
         private bool disposed;
 
         internal SlotBinding(
@@ -42,7 +42,12 @@ namespace UILib
 
         private VisualElement MakeItem()
         {
-            var inst = manager.AcquireSlot<TSlot>(key, uxml);
+            var inst = manager.AcquireOrCreateElement<TSlot>(key, uxml);
+            if (!inst.IsViewReady)
+            {
+                inst.Presenter.OnViewReady(inst.Root);
+                inst.IsViewReady = true;
+            }
             active.Add(inst);
             inst.Root.userData = inst;
             return inst.Root;
@@ -50,14 +55,14 @@ namespace UILib
 
         private void BindItem(VisualElement _element, int _index)
         {
-            var inst = (AttachedInstance)_element.userData;
+            var inst = (ElementInstance)_element.userData;
             inst.IsHidden = false;
             ((IPresenter<TData>)inst.Presenter).OnShow(items[_index]);
         }
 
         private static void UnbindItem(VisualElement _element, int _index)
         {
-            var inst = (AttachedInstance)_element.userData;
+            var inst = (ElementInstance)_element.userData;
             if (inst.IsHidden) return;
             inst.Presenter.OnHide();
             inst.IsHidden = true;
@@ -65,14 +70,14 @@ namespace UILib
 
         private void DestroyItem(VisualElement _element)
         {
-            var inst = (AttachedInstance)_element.userData;
+            var inst = (ElementInstance)_element.userData;
             if (!inst.IsHidden)
             {
                 inst.Presenter.OnHide();
                 inst.IsHidden = true;
             }
             active.Remove(inst);
-            manager.ReleaseSlot(key, inst);
+            manager.ReleaseElement(inst);
         }
 
         public void Dispose()
@@ -93,7 +98,7 @@ namespace UILib
                     inst.Presenter.OnHide();
                     inst.IsHidden = true;
                 }
-                manager.ReleaseSlot(key, inst);
+                manager.ReleaseElement(inst);
             }
             active.Clear();
         }

@@ -7,15 +7,15 @@ using UnityEngine.UIElements;
 namespace UILib
 {
     /// <summary>
-    /// 전역 2차 캐시. window instance 의 순수 storage 역할만 한다.
+    /// 전역 2차 캐시. presenter instance 의 순수 storage 역할만 한다.
     /// Presenter 생성 / Inject / OnCleared 호출은 하지 않는다.
     /// Release 전 presenter.OnCleared() 는 UIManager 가 책임진다.
     /// </summary>
     public sealed class UIPoolingManager : IDisposable
     {
         private readonly IAssetLoader assetLoader;
-        private readonly Dictionary<string, Stack<WindowInstance>> windowPool = new();
-        private readonly Dictionary<string, Stack<AttachedInstance>> attachedPool = new();
+        private readonly Dictionary<string, Stack<DocumentInstance>> documentPool = new();
+        private readonly Dictionary<string, Stack<ElementInstance>> elementPool = new();
         private Transform poolRoot;
 
         public UIPoolingManager(IAssetLoader _assetLoader)
@@ -42,53 +42,53 @@ namespace UILib
             return go;
         }
 
-        /// <summary>2차 pool 에서 WindowInstance 를 꺼낸다. 없으면 null.</summary>
-        internal WindowInstance AcquireWindow(string _key)
+        /// <summary>2차 pool 에서 DocumentInstance 를 꺼낸다. 없으면 null.</summary>
+        internal DocumentInstance AcquireDocument(string _key)
         {
-            if (windowPool.TryGetValue(_key, out var stack) && stack.Count > 0)
+            if (documentPool.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
             return null;
         }
 
-        /// <summary>2차 pool 에서 AttachedInstance 를 꺼낸다. 없으면 null.</summary>
-        internal AttachedInstance AcquireAttached(string _key)
+        /// <summary>2차 pool 에서 ElementInstance 를 꺼낸다. 없으면 null.</summary>
+        internal ElementInstance AcquireElement(string _key)
         {
-            if (attachedPool.TryGetValue(_key, out var stack) && stack.Count > 0)
+            if (elementPool.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
             return null;
         }
 
         /// <summary>
-        /// WindowInstance 를 2차 pool 에 반환한다.
+        /// DocumentInstance 를 2차 pool 에 반환한다.
         /// 전제: presenter.OnCleared() 는 이미 호출됨.
         /// </summary>
-        internal void ReleaseWindow(string _key, WindowInstance _instance)
+        internal void ReleaseDocument(string _key, DocumentInstance _instance)
         {
-            if (!windowPool.TryGetValue(_key, out var stack))
+            if (!documentPool.TryGetValue(_key, out var stack))
             {
-                stack = new Stack<WindowInstance>();
-                windowPool[_key] = stack;
+                stack = new Stack<DocumentInstance>();
+                documentPool[_key] = stack;
             }
             stack.Push(_instance);
         }
 
         /// <summary>
-        /// AttachedInstance 를 2차 pool 에 반환한다.
+        /// ElementInstance 를 2차 pool 에 반환한다.
         /// 전제: presenter.OnCleared() 는 이미 호출됨.
         /// </summary>
-        internal void ReleaseAttached(string _key, AttachedInstance _instance)
+        internal void ReleaseElement(string _key, ElementInstance _instance)
         {
-            if (!attachedPool.TryGetValue(_key, out var stack))
+            if (!elementPool.TryGetValue(_key, out var stack))
             {
-                stack = new Stack<AttachedInstance>();
-                attachedPool[_key] = stack;
+                stack = new Stack<ElementInstance>();
+                elementPool[_key] = stack;
             }
             stack.Push(_instance);
         }
 
         public void Dispose()
         {
-            foreach (var stack in windowPool.Values)
+            foreach (var stack in documentPool.Values)
             {
                 while (stack.TryPop(out var inst))
                 {
@@ -96,14 +96,14 @@ namespace UILib
                     UnityEngine.Object.Destroy(inst.Document.gameObject);
                 }
             }
-            windowPool.Clear();
+            documentPool.Clear();
 
-            foreach (var stack in attachedPool.Values)
+            foreach (var stack in elementPool.Values)
             {
                 while (stack.TryPop(out var inst))
                     inst.Presenter.Dispose();
             }
-            attachedPool.Clear();
+            elementPool.Clear();
 
             if (poolRoot != null)
             {
