@@ -25,7 +25,7 @@ namespace Samples
             optionsDocument = _optionsRef.Document;
         }
 
-        public override void OnDetached()
+        public override void OnCleared()
         {
             uiManager = null;
             optionsDocument = null;

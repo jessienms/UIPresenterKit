@@ -8,14 +8,14 @@ namespace UILib
 {
     /// <summary>
     /// 전역 2차 캐시. window instance 의 순수 storage 역할만 한다.
-    /// Presenter 생성 / Inject / OnDetached 호출은 하지 않는다.
-    /// Release 전 presenter.OnDetached() 는 UIManager 가 책임진다.
+    /// Presenter 생성 / Inject / OnCleared 호출은 하지 않는다.
+    /// Release 전 presenter.OnCleared() 는 UIManager 가 책임진다.
     /// </summary>
     public sealed class UIPoolingManager : IDisposable
     {
         private readonly IAssetLoader assetLoader;
-        private readonly Dictionary<string, Stack<PresenterInstance>> pool = new();
-        private readonly Dictionary<string, Stack<PresenterInstance>> attachedPool = new();
+        private readonly Dictionary<string, Stack<WindowInstance>> windowPool = new();
+        private readonly Dictionary<string, Stack<AttachedInstance>> attachedPool = new();
         private Transform poolRoot;
 
         public UIPoolingManager(IAssetLoader _assetLoader)
@@ -32,30 +32,26 @@ namespace UILib
         {
             var prefab = await assetLoader.LoadAsync(_key);
             if (prefab == null)
-            {
                 throw new InvalidOperationException($"[UILib] '{_key}' 로드 결과가 null입니다. Window prefab GameObject 를 반환해야 합니다.");
-            }
 
             if (!prefab.TryGetComponent<UIDocument>(out _))
-            {
                 throw new InvalidOperationException($"[UILib] '{_key}' prefab root 에 UIDocument 가 없습니다. Window prefab 의 루트 GameObject 에 UIDocument 를 추가하세요.");
-            }
 
             var go = UnityEngine.Object.Instantiate(prefab, poolRoot);
             go.SetActive(false);
             return go;
         }
 
-        /// <summary>2차 pool 에서 presenter instance 를 꺼낸다. 없으면 null.</summary>
-        internal PresenterInstance Acquire(string _key)
+        /// <summary>2차 pool 에서 WindowInstance 를 꺼낸다. 없으면 null.</summary>
+        internal WindowInstance AcquireWindow(string _key)
         {
-            if (pool.TryGetValue(_key, out var stack) && stack.Count > 0)
+            if (windowPool.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
             return null;
         }
 
-        /// <summary>UXML 기반 attached presenter 를 2차 풀에서 꺼낸다. 없으면 null.</summary>
-        internal PresenterInstance AcquireAttached(string _key)
+        /// <summary>2차 pool 에서 AttachedInstance 를 꺼낸다. 없으면 null.</summary>
+        internal AttachedInstance AcquireAttached(string _key)
         {
             if (attachedPool.TryGetValue(_key, out var stack) && stack.Count > 0)
                 return stack.Pop();
@@ -63,51 +59,49 @@ namespace UILib
         }
 
         /// <summary>
-        /// UXML 기반 attached presenter 를 2차 풀에 반환한다.
-        /// 전제: presenter.OnDetached() 는 이미 호출됨.
+        /// WindowInstance 를 2차 pool 에 반환한다.
+        /// 전제: presenter.OnCleared() 는 이미 호출됨.
         /// </summary>
-        internal void ReleaseAttached(string _key, PresenterInstance _instance)
+        internal void ReleaseWindow(string _key, WindowInstance _instance)
         {
-            if (!attachedPool.TryGetValue(_key, out var stack))
+            if (!windowPool.TryGetValue(_key, out var stack))
             {
-                stack = new Stack<PresenterInstance>();
-                attachedPool[_key] = stack;
+                stack = new Stack<WindowInstance>();
+                windowPool[_key] = stack;
             }
             stack.Push(_instance);
         }
 
         /// <summary>
-        /// presenter instance 를 2차 pool 에 반환한다.
-        /// 전제: presenter.OnDetached() 는 이미 호출됨.
+        /// AttachedInstance 를 2차 pool 에 반환한다.
+        /// 전제: presenter.OnCleared() 는 이미 호출됨.
         /// </summary>
-        internal void Release(string _key, PresenterInstance _pair)
+        internal void ReleaseAttached(string _key, AttachedInstance _instance)
         {
-            // SetActive 불필요 — UIManager.Hide 가 이미 display:none 으로 처리.
-            if (!pool.TryGetValue(_key, out var stack))
+            if (!attachedPool.TryGetValue(_key, out var stack))
             {
-                stack = new Stack<PresenterInstance>();
-                pool[_key] = stack;
+                stack = new Stack<AttachedInstance>();
+                attachedPool[_key] = stack;
             }
-            stack.Push(_pair);
+            stack.Push(_instance);
         }
 
         public void Dispose()
         {
-            foreach (var stack in pool.Values)
+            foreach (var stack in windowPool.Values)
             {
-                while (stack.TryPop(out var pair))
+                while (stack.TryPop(out var inst))
                 {
-                    pair.Presenter.Dispose();
-                    if (pair.Document != null)
-                        UnityEngine.Object.Destroy(pair.Document.gameObject);
+                    inst.Presenter.Dispose();
+                    UnityEngine.Object.Destroy(inst.Document.gameObject);
                 }
             }
-            pool.Clear();
+            windowPool.Clear();
 
             foreach (var stack in attachedPool.Values)
             {
-                while (stack.TryPop(out var pair))
-                    pair.Presenter.Dispose();
+                while (stack.TryPop(out var inst))
+                    inst.Presenter.Dispose();
             }
             attachedPool.Clear();
 

@@ -44,7 +44,7 @@ namespace Samples
             statusLabel.text = string.Empty;
         }
 
-        public override void OnDetached()
+        public override void OnCleared()
         {
             idLabel = null;
             nameLabel = null;

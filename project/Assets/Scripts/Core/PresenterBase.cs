@@ -11,9 +11,9 @@ namespace UILib
     /// [Window("key")] attribute 와 [Inject] OnInjected(Models...) 메서드를 추가로 선언한다.
     ///
     /// 라이프사이클 순서:
-    ///   (신규) OnInjected → OnViewReady → OnShow → OnHide (반복) → OnDetached → Dispose
+    ///   (신규) OnInjected → OnViewReady → OnShow → OnHide (반복) → OnCleared → Dispose
     ///   (재사용, 1차 캐시) OnShow → OnHide (반복)
-    ///   (재사용, 2차 풀)  OnInjected → OnShow → OnHide (반복) → OnDetached → Dispose
+    ///   (재사용, 2차 풀)  OnInjected → OnShow → OnHide (반복) → OnCleared → Dispose
     /// </summary>
     public abstract class PresenterBase : IPresenter
     {
@@ -30,7 +30,7 @@ namespace UILib
 
         public virtual void OnViewReady(VisualElement _root) { }
 
-        public virtual void OnDetached() { }
+        public virtual void OnCleared() { }
 
         public virtual void Dispose()
         {

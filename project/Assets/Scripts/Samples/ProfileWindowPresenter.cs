@@ -29,7 +29,7 @@ namespace Samples
             profileModel = _profile;
         }
 
-        public override void OnDetached()
+        public override void OnCleared()
         {
             uiManager = null;
             profileModel = null;

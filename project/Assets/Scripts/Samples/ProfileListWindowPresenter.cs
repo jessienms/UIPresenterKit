@@ -69,7 +69,7 @@ namespace Samples
                 .AddTo(Disposables);
         }
 
-        public override void OnDetached()
+        public override void OnCleared()
         {
             uiManager = null;
             profileModel = null;

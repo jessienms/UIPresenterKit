@@ -19,7 +19,7 @@ namespace Samples
             model = _model;
         }
 
-        public override void OnDetached()
+        public override void OnCleared()
         {
             model = null;
         }

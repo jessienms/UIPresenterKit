@@ -24,7 +24,7 @@ namespace Samples
             uiManager = _uiManager;
         }
 
-        public override void OnDetached()
+        public override void OnCleared()
         {
             counterModel = null;
             uiManager = null;

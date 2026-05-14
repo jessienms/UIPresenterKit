@@ -60,12 +60,12 @@ namespace Samples
         public override void OnHide()
         {
             for (var i = slots.Count - 1; i >= 0; i--)
-                uiManager.Detach(slots[i]);
+                uiManager.Hide(slots[i]);
             slots.Clear();
             base.OnHide();
         }
 
-        public override void OnDetached()
+        public override void OnCleared()
         {
             uiManager  = null;
             model      = null;
@@ -80,7 +80,7 @@ namespace Samples
         {
             if (slots.Count >= MaxSlots) return;
             var profile = model.Profiles[Random.Range(0, model.Profiles.Count)];
-            var slot = await uiManager.Attach<ProfileSlotPresenter>(slotArea, new ProfileSlotArgs(profile));
+            var slot = await uiManager.ShowAttached<ProfileSlotPresenter>(slotArea, new ProfileSlotArgs(profile));
             slots.Add(slot);
             UpdateButtons();
         }
@@ -90,7 +90,7 @@ namespace Samples
             if (slots.Count == 0) return;
             var first = slots[0];
             slots.RemoveAt(0);
-            uiManager.Detach(first);
+            uiManager.Hide(first);
             UpdateButtons();
         }
 

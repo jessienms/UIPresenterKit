@@ -28,7 +28,9 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Work\\\\project_uilib\\\\project\\\\Assets\\\\Scripts\\\\Core\" -Recurse 2>&1 | ForEach-Object { $_.FullName })",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(Select-String \"sourceAsset\" \"C:\\\\Work\\\\project_uilib\\\\project\\\\Assets\\\\UI\\\\CounterWindow.prefab\")",
+      "Bash(Select-Object -ExpandProperty Line)"
     ]
   }
 }

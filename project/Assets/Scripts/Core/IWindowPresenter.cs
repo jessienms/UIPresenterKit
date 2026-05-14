@@ -23,7 +23,7 @@ namespace UILib
         void OnViewReady(VisualElement _root);
 
         /// <summary>UIManager.Dispose 시 1회. OnInjected 에서 받은 dependency 를 모두 null 로 만든다.</summary>
-        void OnDetached();
+        void OnCleared();
 
         /// <summary>매 Show. 임시 구독 시작, UI 상태 reset. UIManager 만 호출한다.</summary>
         void OnShow();
