@@ -4,7 +4,7 @@ using UIPresenterKit.Core;
 using UnityEngine.UIElements;
 using VContainer;
 
-namespace UIPresenterKit.Samples
+namespace UIPresenterKit.Samples.UI
 {
     public sealed class MenuPresenter : PresenterBase
     {

@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace UIPresenterKit.Samples
+namespace UIPresenterKit.Samples.Editor
 {
     /// <summary>
     /// UIPresenterKit > Sample > Terrain Builder 로 열리는 EditorWindow.

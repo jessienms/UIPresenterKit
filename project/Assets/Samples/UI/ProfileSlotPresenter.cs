@@ -1,7 +1,8 @@
 using UIPresenterKit.Core;
+using UIPresenterKit.Samples.Model;
 using UnityEngine.UIElements;
 
-namespace UIPresenterKit.Samples
+namespace UIPresenterKit.Samples.UI
 {
     public readonly struct ProfileSlotArgs : IPresenterArgs<ProfileSlotPresenter>
     {

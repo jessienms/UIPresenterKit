@@ -1,9 +1,10 @@
 using R3;
 using UIPresenterKit.Core;
+using UIPresenterKit.Samples.Model;
 using UnityEngine.UIElements;
 using VContainer;
 
-namespace UIPresenterKit.Samples
+namespace UIPresenterKit.Samples.UI
 {
     [Window("UI/ProfileWindow")]
     public sealed class ProfileWindowPresenter : PresenterBase

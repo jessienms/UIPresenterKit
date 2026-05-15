@@ -1,6 +1,6 @@
 using R3;
 
-namespace UIPresenterKit.Samples
+namespace UIPresenterKit.Samples.Model
 {
     public class SampleCounterModel
     {

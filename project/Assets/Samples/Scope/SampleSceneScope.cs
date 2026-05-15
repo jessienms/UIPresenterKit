@@ -1,5 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UIPresenterKit.Core;
+using UIPresenterKit.Samples.Model;
+using UIPresenterKit.Samples.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;

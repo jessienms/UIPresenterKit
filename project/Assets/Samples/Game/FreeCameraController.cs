@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace UIPresenterKit.Samples
+namespace UIPresenterKit.Samples.Game
 {
     public sealed class FreeCameraController : MonoBehaviour
     {
