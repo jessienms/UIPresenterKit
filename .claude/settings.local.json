@@ -32,7 +32,10 @@
       "Bash(Select-String \"sourceAsset\" \"C:\\\\Work\\\\project_uilib\\\\project\\\\Assets\\\\UI\\\\CounterWindow.prefab\")",
       "Bash(Select-Object -ExpandProperty Line)",
       "Bash(rtk ls *)",
-      "Bash(gh repo *)"
+      "Bash(gh repo *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Work\\\\UIPresenterKit\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "PowerShell(ls -Force \"C:\\\\Work\\\\UIPresenterKit\" | Where-Object { $_.Name -notmatch \"^project$\" })"
     ]
   }
 }
