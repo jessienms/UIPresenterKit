@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "displayName": "UI Presenter Kit",
   "description": "MVP pattern with VContainer and R3 for Unity UI Toolkit.",
-  "unity": "6000.3.9f1",
+  "unity": "6000.3",
   "author": {
     "name": "jessie",
     "email": "jessie@skeinglobe.com"
