@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="DamageText.uss" />
+    <ui:VisualElement name="damage-root" picking-mode="Ignore">
+        <ui:Label name="damage-label" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

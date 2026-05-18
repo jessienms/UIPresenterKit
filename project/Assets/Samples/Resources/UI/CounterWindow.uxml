@@ -1,18 +1,16 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <ui:Template name="ProfileSection" src="project://database/Assets/UI/ProfileSection.uxml?fileID=9197481963319205126&amp;guid=1c447bee29fd4224ab65272b9bf7ba13&amp;type=3#ProfileSection"/>
     <Style src="project://database/Assets/UI/SampleWindow.uss?fileID=7433441132597879392&amp;guid=acb58642f3d1b60439c3dda55baac172&amp;type=3#SampleWindow"/>
     <ui:VisualElement name="overlay" class="overlay">
         <ui:VisualElement name="window" class="window">
             <ui:VisualElement name="title-bar" class="title-bar">
-                <ui:Label name="title-label" text="샘플 창" class="title-label"/>
+                <ui:Label name="title-label" text="Mob 스폰" class="title-label"/>
                 <ui:Button name="close-btn" text="✕" class="close-btn"/>
             </ui:VisualElement>
-            <ui:Instance template="ProfileSection" name="profile-section"/>
             <ui:VisualElement name="body" class="body">
-                <ui:Label name="counter-label" text="" class="counter-label"/>
+                <ui:Label name="count-label" text="현재: 0마리" class="counter-label"/>
                 <ui:VisualElement class="button-row">
-                    <ui:Button name="action-btn" text="클릭" class="action-btn"/>
-                    <ui:Button name="reset-btn" text="초기화" class="secondary-btn"/>
+                    <ui:Button name="spawn-btn" text="+" class="action-btn"/>
+                    <ui:Button name="remove-btn" text="−" class="secondary-btn"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

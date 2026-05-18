@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PrefabRegistry
   m_EditorClassIdentifier: Assembly-CSharp::UILib.PrefabRegistry
   entries:
-  - key: UI/CounterWindow
+  - key: UI/MobSpawnWindow
     prefab: {fileID: 8136984335429045747, guid: bb98e6fdfc3dab14eb2736164f44e7b2, type: 3}
   - key: UI/ProfileWindow
     prefab: {fileID: 6977646320505426345, guid: 044632d8cb42dca4694ffdec543886d9, type: 3}
@@ -26,3 +26,7 @@ MonoBehaviour:
   uxmlEntries:
   - key: UI/ProfileListSlot
     uxml: {fileID: 9197481963319205126, guid: 158579056b784a16b364591cd4b69630, type: 3}
+  - key: UI/HpBar
+    uxml: {fileID: 9197481963319205126, guid: 552b1f14236b2b24396acb1370d854e8, type: 3}
+  - key: UI/DamageText
+    uxml: {fileID: 9197481963319205126, guid: 000456196b6024e40aa708e21a1dd85b, type: 3}

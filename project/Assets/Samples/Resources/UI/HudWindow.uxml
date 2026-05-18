@@ -2,7 +2,7 @@
     <Style src="project://database/Assets/UI/HudWindow.uss?fileID=7433441132597879392&amp;guid=67fccc74b826fa74494f6b9a0d223585&amp;type=3#HudWindow"/>
     <ui:VisualElement style="flex-grow: 1; position: absolute; height: 95px; width: auto; left: 0; top: auto; right: 0; bottom: 0; min-height: 95px; max-height: 95px; -unity-background-image-tint-color: rgb(120, 120, 120); background-color: rgb(34, 34, 34);"/>
     <ui:VisualElement name="hud" picking-mode="Ignore" class="hud">
-        <ui:Button name="open-counter-btn" text="카운터 열기" class="hud-btn"/>
+        <ui:Button name="open-mob-spawn-btn" text="Mob 스폰" class="hud-btn"/>
         <ui:Button name="open-profile-btn" text="프로필 열기" class="hud-btn"/>
         <ui:Button name="open-profile-list-btn" text="프로필 리스트" class="hud-btn"/>
         <ui:Button name="toggle-options-btn" text="옵션 열기" class="hud-btn hud-btn--options"/>

@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using R3;
 using UIPresenterKit.Core;
+using UIPresenterKit.Samples.Scope;
 using UnityEngine.UIElements;
 using VContainer;
 
@@ -11,7 +12,7 @@ namespace UIPresenterKit.Samples.UI
         private UIManager uiManager;
         private UIDocument optionsDocument;
 
-        private Button openCounterBtn;
+        private Button openMobSpawnBtn;
         private Button openProfileBtn;
         private Button openProfileListBtn;
         private Button toggleOptionsBtn;
@@ -33,7 +34,7 @@ namespace UIPresenterKit.Samples.UI
 
         public override void OnViewReady(VisualElement _root)
         {
-            openCounterBtn = _root.Q<Button>("open-counter-btn");
+            openMobSpawnBtn = _root.Q<Button>("open-mob-spawn-btn");
             openProfileBtn = _root.Q<Button>("open-profile-btn");
             openProfileListBtn = _root.Q<Button>("open-profile-list-btn");
             toggleOptionsBtn = _root.Q<Button>("toggle-options-btn");
@@ -43,8 +44,8 @@ namespace UIPresenterKit.Samples.UI
         {
             base.OnShow();
 
-            Observable.FromEvent(_h => openCounterBtn.clicked += _h, _h => openCounterBtn.clicked -= _h)
-                .Subscribe(_ => uiManager.Show<CounterWindowPresenter>().Forget())
+            Observable.FromEvent(_h => openMobSpawnBtn.clicked += _h, _h => openMobSpawnBtn.clicked -= _h)
+                .Subscribe(_ => uiManager.Show<MobSpawnPresenter>().Forget())
                 .AddTo(Disposables);
 
             Observable.FromEvent(_h => openProfileBtn.clicked += _h, _h => openProfileBtn.clicked -= _h)
