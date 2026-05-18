@@ -1,4 +1,3 @@
-using UIPresenterKit.Core;
 using UnityEngine.UIElements;
 
 namespace UIPresenterKit.Samples.UI

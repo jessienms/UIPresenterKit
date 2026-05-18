@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 
-namespace UIPresenterKit.Core
+namespace UIPresenterKit
 {
     internal sealed class ListViewBinding<TSlot, TData> : IDisposable
         where TSlot : class, IPresenter<TData>, new()

@@ -1,5 +1,4 @@
 using Cysharp.Threading.Tasks;
-using UIPresenterKit.Core;
 using UIPresenterKit.Samples.Game;
 using UIPresenterKit.Samples.Model;
 using UIPresenterKit.Samples.UI;

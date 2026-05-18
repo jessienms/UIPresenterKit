@@ -1,6 +1,6 @@
 using System;
 
-namespace UIPresenterKit.Core
+namespace UIPresenterKit
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class WindowAttribute : Attribute

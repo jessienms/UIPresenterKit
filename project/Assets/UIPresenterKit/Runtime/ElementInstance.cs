@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.UIElements;
 
-namespace UIPresenterKit.Core
+namespace UIPresenterKit
 {
     internal sealed class ElementInstance : PresenterInstanceBase
     {

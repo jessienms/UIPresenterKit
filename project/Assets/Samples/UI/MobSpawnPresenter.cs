@@ -1,6 +1,5 @@
 using ObservableCollections;
 using R3;
-using UIPresenterKit.Core;
 using UIPresenterKit.Samples.Game;
 using UIPresenterKit.Samples.Model;
 using UnityEngine.UIElements;

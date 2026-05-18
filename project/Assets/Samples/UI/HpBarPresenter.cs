@@ -1,5 +1,4 @@
 using R3;
-using UIPresenterKit.Core;
 using UIPresenterKit.Samples.Game;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -50,10 +49,10 @@ namespace UIPresenterKit.Samples.UI
 
             root.BindToWorld(_arg.Target, _arg.Camera, new FloatingOptions
             {
-                Mode = FloatingMode.Continuous,
-                WorldOffset = Vector3.up * 1.2f,
-                Pivot = new Vector2(0.5f, 1f),
-                HideWhenBehindCamera = true,
+                mode = FloatingMode.Continuous,
+                worldOffset = Vector3.up * 1.2f,
+                pivot = new Vector2(0.5f, 1f),
+                hideWhenBehindCamera = true,
             }).AddTo(Disposables);
         }
 

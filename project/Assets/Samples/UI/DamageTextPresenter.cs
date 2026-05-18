@@ -1,6 +1,5 @@
 using System;
 using R3;
-using UIPresenterKit.Core;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,11 +11,11 @@ namespace UIPresenterKit.Samples.UI
         public int Damage { get; }
         public Camera Camera { get; }
 
-        public DamageTextArgs(Vector3 worldPosition, int damage, Camera camera)
+        public DamageTextArgs(Vector3 _worldPosition, int _damage, Camera _camera)
         {
-            WorldPosition = worldPosition;
-            Damage = damage;
-            Camera = camera;
+            WorldPosition = _worldPosition;
+            Damage = _damage;
+            Camera = _camera;
         }
 
         public void InvokeOnShow(DamageTextPresenter _presenter) => _presenter.OnShow(this);
@@ -48,9 +47,9 @@ namespace UIPresenterKit.Samples.UI
 
             root.BindToWorld(_arg.WorldPosition, _arg.Camera, new FloatingOptions
             {
-                Mode = FloatingMode.OneShot,
-                WorldOffset = Vector3.up * 1.5f,
-                Pivot = new Vector2(0.5f, 1f),
+                mode = FloatingMode.OneShot,
+                worldOffset = Vector3.up * 1.5f,
+                pivot = new Vector2(0.5f, 1f),
             });
 
             var baseTop = root.style.top.value.value;

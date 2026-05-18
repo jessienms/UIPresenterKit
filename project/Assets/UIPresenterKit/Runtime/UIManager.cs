@@ -6,7 +6,7 @@ using R3;
 using UnityEngine.UIElements;
 using VContainer;
 
-namespace UIPresenterKit.Core
+namespace UIPresenterKit
 {
     /// <summary>
     /// scope 당 singleton. Factory + 1차 캐시 + Presenter 반환 역할.
@@ -43,12 +43,11 @@ namespace UIPresenterKit.Core
 
         private readonly Dictionary<string, Stack<DocumentInstance>> documentCache = new();
         private readonly Dictionary<string, Stack<ElementInstance>> elementCache = new();
+        private readonly Dictionary<string, VisualTreeAsset> uxmlCache = new();
         private readonly Dictionary<IPresenter, PresenterInstanceBase> activePresenters = new();
         private readonly Dictionary<IPresenter, IDisposable> hideSubscriptions = new();
-        private readonly Dictionary<string, VisualTreeAsset> uxmlCache = new();
 
         private int nextOrder;
-
         private static readonly Dictionary<Type, string> TypeToKey = new();
 
         public UIManager(IObjectResolver _resolver, UIPoolingManager _poolingManager, IAssetLoader _assetLoader)

@@ -3,7 +3,7 @@ using R3;
 using UnityEngine.UIElements;
 using Unit = R3.Unit;
 
-namespace UIPresenterKit.Core
+namespace UIPresenterKit
 {
     /// <summary>
     /// IPresenter 를 구현하는 편의 기반 클래스.

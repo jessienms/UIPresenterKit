@@ -3,7 +3,7 @@ using R3;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UIPresenterKit.Core
+namespace UIPresenterKit
 {
 	/// <summary>Floating UI 의 동작 방식.</summary>
 	public enum FloatingMode
@@ -17,32 +17,32 @@ namespace UIPresenterKit.Core
 	/// <summary>BindToWorld 동작 옵션.</summary>
 	public struct FloatingOptions
 	{
-		public FloatingMode Mode;
+		public FloatingMode mode;
 
 		/// <summary>타겟 기준 월드 오프셋. 예: 캐릭터 머리 위에 표시하려면 Vector3.up * 2f.</summary>
-		public Vector3 WorldOffset;
+		public Vector3 worldOffset;
 
 		/// <summary>panel 좌표계 기준 화면 추가 오프셋 (픽셀).</summary>
-		public Vector2 ScreenOffset;
+		public Vector2 screenOffset;
 
 		/// <summary>
 		/// UI 요소의 어느 지점이 타겟 화면 좌표에 맞춰질지.
 		/// (0,0) = 좌상단, (0.5,0.5) = 중앙, (0.5,1) = 하단 중앙.
 		/// </summary>
-		public Vector2 Pivot;
+		public Vector2 pivot;
 
 		/// <summary>카메라 뒤에 있을 때 자동으로 숨길지.</summary>
-		public bool HideWhenBehindCamera;
+		public bool hideWhenBehindCamera;
 
 		/// <summary>화면 밖으로 나갔을 때 자동으로 숨길지.</summary>
-		public bool HideWhenOffScreen;
+		public bool hideWhenOffScreen;
 
 		public static FloatingOptions Default => new FloatingOptions
 		{
-			Mode = FloatingMode.Continuous,
-			Pivot = new Vector2(0.5f, 0.5f),
-			HideWhenBehindCamera = true,
-			HideWhenOffScreen = false,
+			mode = FloatingMode.Continuous,
+			pivot = new Vector2(0.5f, 0.5f),
+			hideWhenBehindCamera = true,
+			hideWhenOffScreen = false,
 		};
 	}
 
@@ -82,7 +82,7 @@ namespace UIPresenterKit.Core
 			_root.style.position = Position.Absolute;
 			_root.style.flexGrow = 0;
 
-			if (opts.Mode == FloatingMode.OneShot)
+			if (opts.mode == FloatingMode.OneShot)
 			{
 				if (_target != null)
 					ApplyPosition(_root, _target.position, _camera, opts);
@@ -117,7 +117,7 @@ namespace UIPresenterKit.Core
 			_root.style.position = Position.Absolute;
 			_root.style.flexGrow = 0;
 
-			if (opts.Mode == FloatingMode.OneShot)
+			if (opts.mode == FloatingMode.OneShot)
 			{
 				ApplyPosition(_root, _worldPosition, _camera, opts);
 				return EmptyDisposable.Instance;
@@ -131,11 +131,11 @@ namespace UIPresenterKit.Core
 		{
 			if (_root.panel == null) return;
 
-			Vector3 screen = _camera.WorldToScreenPoint(_worldPos + _opts.WorldOffset);
+			Vector3 screen = _camera.WorldToScreenPoint(_worldPos + _opts.worldOffset);
 			bool inFront = screen.z > 0f;
 
-			bool visible = inFront || !_opts.HideWhenBehindCamera;
-			if (visible && _opts.HideWhenOffScreen)
+			bool visible = inFront || !_opts.hideWhenBehindCamera;
+			if (visible && _opts.hideWhenOffScreen)
 				visible = screen.x >= 0f && screen.x <= Screen.width
 					   && screen.y >= 0f && screen.y <= Screen.height;
 
@@ -147,15 +147,15 @@ namespace UIPresenterKit.Core
 			Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(
 				_root.panel,
 				new Vector2(screen.x, Screen.height - screen.y));
-			panelPos += _opts.ScreenOffset;
+			panelPos += _opts.screenOffset;
 
 			// resolvedStyle 이 첫 layout 전엔 NaN 이므로 Pivot 보정은 준비된 이후에만 적용
 			float w = _root.resolvedStyle.width;
 			float h = _root.resolvedStyle.height;
 			if (!float.IsNaN(w) && !float.IsNaN(h))
 			{
-				panelPos.x -= w * _opts.Pivot.x;
-				panelPos.y -= h * _opts.Pivot.y;
+				panelPos.x -= w * _opts.pivot.x;
+				panelPos.y -= h * _opts.pivot.y;
 			}
 
 			_root.style.left = panelPos.x;

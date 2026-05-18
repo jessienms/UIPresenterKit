@@ -3,7 +3,7 @@ using R3;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UIPresenterKit.Core
+namespace UIPresenterKit
 {
 	public static class UILibUtils
 	{
