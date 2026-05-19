@@ -41,7 +41,12 @@
       "Bash(Remove-Item \"C:\\\\Work\\\\UIPresenterKit\\\\project\\\\Assets\\\\Samples\\\\UI\\\\CounterWindowPresenter.cs.meta\" -Force -ErrorAction SilentlyContinue)",
       "Bash(Write-Host \"Deleted CounterWindowPresenter.cs\")",
       "PowerShell(rtk git *)",
-      "Bash(Select-String *)"
+      "Bash(Select-String *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Work\\\\UIPresenterKit\\\\project\\\\Assets\\\\UIPresenterKit\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(git tag *)",
+      "Bash(git pull *)",
+      "Bash(git stash *)"
     ]
   }
 }
