@@ -20,6 +20,7 @@ namespace UIPresenterKit
             public string key;
             public GameObject prefab;
         }
+		
 
         [Serializable]
         private struct UxmlEntry
