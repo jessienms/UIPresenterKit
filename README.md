@@ -1,7 +1,9 @@
 # UI Presenter Kit
 
-Unity **UI Toolkit** 기반 프로젝트를 위한 MVP 패턴 UI 라이브러리.  
+Unity **UI Toolkit** 기반 프로젝트를 위한 MVP 패턴 UI 프레임워크 라이브러리.  
+표준화된 presenter 를 작성할 수 있게 도와줍니다.
 **VContainer**로 의존성을 주입하고, **R3**로 반응형 UI 상태를 관리합니다.
+리소스 풀링 기능으로 presenter 생성시 부담을 줄여줍니다.
 
 ## 특징
 
