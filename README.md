@@ -97,9 +97,9 @@ public sealed class AddressableAssetLoader : IAssetLoader
 }
 ```
 
-### 2. LifetimeScope 구성
+### 2. LifetimeScope 구성 예시
 
-LifetimeScope는 **앱 루트**와 **씬** 두 계층으로 구성합니다.
+아래의 예시는 LifetimeScope는 **앱 루트**와 **씬** 두 계층으로 설명합니다.
 
 **앱 루트 LifetimeScope** (씬 전환 시 유지):
 
@@ -117,6 +117,9 @@ public sealed class AppScope : LifetimeScope
         // builder.Register<AddressableAssetLoader>(Lifetime.Singleton).AsImplementedInterfaces();
 
         builder.Register<UIPoolingManager>(Lifetime.Singleton);
+		
+		// 전역적인 UIManager
+        builder.Register<UIManager>(Lifetime.Singleton);
     }
 }
 ```
@@ -130,21 +133,15 @@ public sealed class MainSceneScope : LifetimeScope
 
     protected override void Configure(IContainerBuilder builder)
     {
-        // UIManager는 씬마다 하나
+        // 한정된 범위의 UIManager (현재는 MainScene 의 생명주기와 일치)
         builder.Register<UIManager>(Lifetime.Singleton);
-
-        // 씬 오브젝트 참조는 wrapper 클래스로 주입
-        builder.RegisterInstance(new MenuDocumentRef(menuDocument));
-
-        // 씬 진입점 (IStartable)
-        builder.RegisterEntryPoint<MainSceneEntryPoint>();
+		
+		...
     }
 }
 ```
 
-### 3. 씬 진입점 설정
-
-`IStartable`을 구현하여 씬 초기화 및 UI 사전 로드를 처리합니다.
+### 3. UI Manager 사용 예시
 
 ```csharp
 public sealed class MainSceneEntryPoint : IStartable
@@ -152,10 +149,10 @@ public sealed class MainSceneEntryPoint : IStartable
     private readonly UIManager uiManager;
     private readonly UIDocument menuDocument;
 
-    public MainSceneEntryPoint(UIManager uiManager, MenuDocumentRef menuRef)
+    public MainSceneEntryPoint(UIManager _uiManager, UIDocument _menuDocument)
     {
-        this.uiManager = uiManager;
-        menuDocument = menuRef.Document;
+        uiManager = _uiManager;
+        menuDocument = _menuDocument;
     }
 
     public void Start() => InitAsync().Forget();
