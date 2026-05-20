@@ -45,7 +45,7 @@ VContainer, R3, UniTask는 [OpenUPM](https://openupm.com)을 통해 설치할 �
 Unity **Package Manager → Add package from git URL**에 아래 URL을 입력합니다.
 
 ```
-https://github.com/jessienms/UIPresenterKit.git?path=project/Assets/UIPresenterKit
+https://internal.skeinglobe.com/git/sg/UIPresenterKit.git?path=/project/Assets/UIPresenterKit
 ```
 
 또는 `Packages/manifest.json`에 직접 추가합니다.
@@ -53,7 +53,7 @@ https://github.com/jessienms/UIPresenterKit.git?path=project/Assets/UIPresenterK
 ```json
 {
   "dependencies": {
-    "com.sg.uipresenterkit": "https://github.com/jessienms/UIPresenterKit.git?path=project/Assets/UIPresenterKit"
+    "com.sg.uipresenterkit": "https://internal.skeinglobe.com/git/sg/UIPresenterKit.git?path=/project/Assets/UIPresenterKit"
   }
 }
 ```
