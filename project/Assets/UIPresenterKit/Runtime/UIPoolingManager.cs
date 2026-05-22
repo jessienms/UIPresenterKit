@@ -93,7 +93,9 @@ namespace UIPresenterKit
                 while (stack.TryPop(out var inst))
                 {
                     inst.Presenter.Dispose();
-                    UnityEngine.Object.Destroy(inst.Document.gameObject);
+                    // Unity 종료 시 먼저 파괴될 수 있으므로 null 체크
+                    if (inst.Document != null)
+                        UnityEngine.Object.Destroy(inst.Document.gameObject);
                 }
             }
             documentPool.Clear();
