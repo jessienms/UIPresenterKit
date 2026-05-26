@@ -1,6 +1,6 @@
 {
   "name": "com.sg.uipresenterkit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "displayName": "UI Presenter Kit",
   "description": "MVP pattern with VContainer and R3 for Unity UI Toolkit.",
   "unity": "6000.3",
